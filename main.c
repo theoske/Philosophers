@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/08/10 11:25:16 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/08/10 13:27:13 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,48 @@
 
 // eat -> sleep -> think		#SigmaPhilosopherGrindset
 // 1 fork per philosopher
+
+int	ft_finder(const char *nptr)
+{
+	int		i;
+
+	i = 0;
+	while (nptr[i] == ' ' || nptr[i] == '\t' || nptr[i] == '\n'
+		|| nptr[i] == '\v' || nptr[i] == '\f' || nptr[i] == '\r')
+		i++;
+	if (nptr[i] == '+')
+		i++;
+	return (i);
+}
+
+int	ft_atoi(const char *nptr)
+{
+	int			i;
+	int			j;
+	int			neg;
+	long int	nb;
+
+	neg = 1;
+	i = ft_finder(nptr);
+	nb = 0;
+	if (nptr[i] == '-' && nptr[i - 1] != '+')
+	{
+		neg = -1;
+		i++;
+	}
+	j = i;
+	while (nptr[i] >= 48 && nptr[i] <= 57)
+	{
+		nb *= 10;
+		nb += (nptr[i] - 48);
+		i++;
+	}
+	if (i - j > 10 && neg == 1)
+		return (-1);
+	if (i - j > 10)
+		return (0);
+	return (nb * neg);
+}
 
 typedef struct s_data
 {
@@ -75,11 +117,17 @@ int	ft_error(void)
 	return (-1);
 }
 
+//voir mutex et threads
 // number_of_philosophers	time_to_die 	time_to_eat		time_to_sleep	[times_each_philosopher_must_eat]
 int	main(int argc, char *argv[])
 {
 	t_data	data;
 
 	if (arguments_checker(argc, argv, &data) == -1)
-		return (ft_error);
+		return (ft_error());
+	else
+		printf("bon\n");
+	printf("data values : %d %d %d %d %d\n", data.number_of_philosopher, data.time_to_die, data.time_to_eat, data.time_to_sleep, data.times_each_philosopher_must_eat);
+	
+	return (0);
 }
