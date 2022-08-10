@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/08/10 11:23:57 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/08/10 11:25:16 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,7 @@ int	number_checker(char *argv[])
 
 /*
 	Checking if arguments are numbers.
+	Checking if there is a valid number of arguments (4 or 5).
 	Converting them from char* to int.
 */
 int	arguments_checker(int argc, char *argv[], t_data *data)
