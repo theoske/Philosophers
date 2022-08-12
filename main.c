@@ -6,14 +6,14 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/08/11 17:28:13 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/08/12 14:31:56 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <time.h>
+#include <sys/time.h>
 #include <pthread.h>
 
 
@@ -64,11 +64,13 @@ int	ft_atoi(const char *nptr)
 
 typedef struct s_data
 {
-	long int	number_of_philo;
-	long int	initial_time_to_die;
-	long int	initial_time_to_eat;
-	long int	initial_time_to_sleep;
-	long int	times_each_philo_must_eat;
+	long int		number_of_philo;
+	long int		initial_time_to_die;
+	long int		initial_time_to_eat;
+	long int		initial_time_to_sleep;
+	long int		times_each_philo_must_eat;
+	struct timeval	start;
+	struct timeval	end;
 }	t_data;
 
 typedef struct s_philo_data
@@ -116,7 +118,8 @@ int	arguments_checker(int argc, char *argv[], t_data *data)
 	if (argc == 6)
 		data->times_each_philo_must_eat = ft_atoi(argv[5]);
 	else if (argc == 5)
-		data->times_each_philo_must_eat = 0;
+		data->times_each_philo_must_eat = -1;
+	gettimeofday(&data->start, NULL);
 	return (0);
 }
 
@@ -141,8 +144,44 @@ void	philo_init(t_data *data, t_philo_data *philo_data)
 	}
 }
 
+long int	time_diff(struct timeval *start, struct timeval *end)
+{
+	return (end->tv_usec - start->tv_usec);
+}
+
+void	take_fork(t_philo_data *philo_data, t_data data)
+{
+	printf("%d   %d has taken a fork\n", time_diff(&data.start, &data.end), philo_data->name);
+}
+
+void	eat(t_philo_data *philo_data, t_data data)
+{
+	printf("%d   %d is eating\n", time_diff(&data.start, &data.end), philo_data->name);
+}
+
+void	sleep(t_philo_data *philo_data, t_data data)
+{
+	printf("%d   %d is sleeping\n", time_diff(&data.start, &data.end), philo_data->name);
+}
+
+void	died(t_philo_data *philo_data, t_data data)
+{
+	printf("%d   %d died\n", time_diff(&data.start, &data.end), philo_data->name);
+}
+
+void	philosopher(t_philo_data **philo_data, t_data data)
+{
+	int		i;
+	
+	i = 0;
+	while (data.times_each_philo_must_eat != 0)
+	{
+		
+	}
+}
+
 // 
-// number_of_philos	time_to_die 	time_to_eat		time_to_sleep	[times_each_philo_must_eat]
+// number_of_philos		time_to_die 	time_to_eat		time_to_sleep	[times_each_philo_must_eat]
 int	main(int argc, char *argv[])
 {
 	t_data				data;
@@ -160,6 +199,7 @@ int	main(int argc, char *argv[])
 	philo = malloc(sizeof(pthread_t) * data.number_of_philo); // creer autant de threads que de philo
 	philo_data = malloc(sizeof(pthread_t) * data.number_of_philo);
 	philo_init(&data, &philo_data);
+	philosopher(&philo_data, data);
 	pthread_mutex_destroy(&mutex);
 	free (philo);
 	free (philo_data);
@@ -167,7 +207,7 @@ int	main(int argc, char *argv[])
 }
 
 /*
-Threads : nouveaux processus executant une fonction.
-pthread_join est un point ou les threads sattendent
-Mutex : mutex_lock et mutex_unlock placent une zone qui ne peut etre lu que par un thread a la fois.
+	Threads : nouveaux processus executant une fonction.
+pthread_join est un point ou les threads s'attendent.
+	Mutex : mutex_lock et mutex_unlock placent une zone qui ne peut etre lu que par un thread a la fois.
 */
