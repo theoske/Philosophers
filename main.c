@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/08/12 16:26:21 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/08/12 17:54:36 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,7 +134,7 @@ void	philo_init(t_data *data, t_philo_data *philo_data[])
 	int		i;
 
 	i = 0;
-	while (i < data->number_of_philo)
+	while (i < data->number_of_philo)//segfault over 1
 	{
 		philo_data[i]->name = i;
 		philo_data[i]->nbr_of_forks_held = 0;
@@ -212,8 +212,9 @@ int	main(int argc, char *argv[])
 
 	if (arguments_checker(argc, argv, &data) == -1)
 		return (ft_error());
+	philo_data = 0;
 	philo = malloc(sizeof(pthread_t) * data.number_of_philo); // creer autant de threads que de philo
-	philo_data = malloc(sizeof(philo_data) * data.number_of_philo);
+	philo_data = malloc(sizeof(t_philo_data) * data.number_of_philo);// marche pas
 	philo_init(&data, &philo_data);
 	// philosopher(&philo_data, &data);
 	free (philo);
