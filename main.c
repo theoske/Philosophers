@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/08/12 15:23:40 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/08/12 16:26:21 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <pthread.h>
-
+#include <string.h>
 
 // eat -> sleep -> think		#SigmaPhilosopherGrindset
 // 1 fork per philo
@@ -129,18 +129,19 @@ int	ft_error(void)
 	return (-1);
 }
 
-void	philo_init(t_data *data, t_philo_data *philo_data)
+void	philo_init(t_data *data, t_philo_data *philo_data[])
 {
 	int		i;
 
 	i = 0;
-	while (i++ < data->number_of_philo)
+	while (i < data->number_of_philo)
 	{
-		philo_data[i].name = i;
-		philo_data[i].nbr_of_forks_held = 0;
-		philo_data[i].time_to_die = data->initial_time_to_die;
-		philo_data[i].time_to_eat = data->initial_time_to_eat;
-		philo_data[i].time_to_sleep = data->initial_time_to_sleep;
+		philo_data[i]->name = i;
+		philo_data[i]->nbr_of_forks_held = 0;
+		philo_data[i]->time_to_die = data->initial_time_to_die;
+		philo_data[i]->time_to_eat = data->initial_time_to_eat;
+		philo_data[i]->time_to_sleep = data->initial_time_to_sleep;
+		i++;
 	}
 }
 
@@ -149,50 +150,58 @@ long int	time_diff(struct timeval *start, struct timeval *end)
 	return (end->tv_usec - start->tv_usec);
 }
 
-void	take_fork(t_philo_data *philo_data, t_data data)
+void	take_fork(t_philo_data *philo_data, t_data *data)
 {
-	printf("%d   %d has taken a fork\n", time_diff(&data.start, &data.end), philo_data->name);
+	printf("%ld   %d has taken a fork\n", time_diff(&data->start, &data->end), philo_data->name);
 }
 
-void	eat(t_philo_data *philo_data, t_data data)
+void	eat(t_philo_data *philo_data, t_data *data)
 {
-	printf("%d   %d is eating\n", time_diff(&data.start, &data.end), philo_data->name);
+	printf("%ld   %d is eating\n", time_diff(&data->start, &data->end), philo_data->name);
 }
 
-void	sleep(t_philo_data *philo_data, t_data data)
+void	sleeping(t_philo_data *philo_data, t_data *data)
 {
-	printf("%d   %d is sleeping\n", time_diff(&data.start, &data.end), philo_data->name);
+	printf("%ld   %d is sleeping\n", time_diff(&data->start, &data->end), philo_data->name);
 }
 
-void	died(t_philo_data *philo_data, t_data data)
+void	think(t_philo_data *philo_data, t_data *data)
 {
-	printf("%d   %d died\n", time_diff(&data.start, &data.end), philo_data->name);
+	printf("%ld   %d is thinking\n", time_diff(&data->start, &data->end), philo_data->name);
 }
 
-void	philosopher(t_philo_data **philo_data, t_data data)
+void	died(t_philo_data *philo_data, t_data *data)
+{
+	printf("%ld   %d died\n", time_diff(&data->start, &data->end), philo_data->name);
+}
+
+void	philosopher(t_philo_data **philo_data, t_data *data)
 {
 	int		i;
-	int		a;
 
-	while (data.times_each_philo_must_eat != 0)
+	i = 0;
+	while (data->times_each_philo_must_eat != 0)
 	{
-		if (a % 2)
+		if (i % 2 == 1)
+		{
 			i = 0;
+			data->times_each_philo_must_eat--;
+		}
 		else
 			i = 1;
-		while (i < data.number_of_philo)
+		while (i < data->number_of_philo)
 		{
 			take_fork(philo_data[i], data);
 			take_fork(philo_data[i], data);
 			eat(philo_data[i], data);
-			sleep(philo_data[i], data);
+			sleeping(philo_data[i], data);
 			think(philo_data[i], data);
 			i += 2;
 		}
 	}
 }
 
-// take in account times to die/eat/sleep
+// take in account time to die/eat/sleep
 // number_of_philos		time_to_die 	time_to_eat		time_to_sleep	[times_each_philo_must_eat]
 int	main(int argc, char *argv[])
 {
@@ -203,12 +212,10 @@ int	main(int argc, char *argv[])
 
 	if (arguments_checker(argc, argv, &data) == -1)
 		return (ft_error());
-	pthread_mutex_init(&mutex, NULL);
 	philo = malloc(sizeof(pthread_t) * data.number_of_philo); // creer autant de threads que de philo
-	philo_data = malloc(sizeof(pthread_t) * data.number_of_philo);
+	philo_data = malloc(sizeof(philo_data) * data.number_of_philo);
 	philo_init(&data, &philo_data);
-	philosopher(&philo_data, data);
-	pthread_mutex_destroy(&mutex);
+	// philosopher(&philo_data, &data);
 	free (philo);
 	free (philo_data);
 	return (0);
