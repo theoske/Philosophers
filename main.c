@@ -6,7 +6,7 @@
 /*   By: theo <theo@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/08/16 15:34:37 by theo             ###   ########.fr       */
+/*   Updated: 2022/08/16 17:49:36 by theo             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -200,22 +200,7 @@ void	philosopher(t_philo_data *philo_data, t_data *data)
 	i = 0;
 	while (data->times_each_philo_must_eat != 0)
 	{
-		if (i % 2 == 1)
-		{
-			i = 0;
-			data->times_each_philo_must_eat--;
-		}
-		else
-			i = 1;
-		// while (i < data->number_of_philo)
-		// {
-		// 	take_fork(philo_data[i], data);
-		// 	take_fork(philo_data[i], data);
-		// 	eat(philo_data[i], data);
-		// 	sleeping(philo_data[i], data);
-		// 	think(philo_data[i], data);
-		// 	i += 2;
-		// }
+		
 	}
 }
 
