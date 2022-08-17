@@ -6,7 +6,7 @@
 /*   By: theo <theo@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/08/16 17:49:36 by theo             ###   ########.fr       */
+/*   Updated: 2022/08/17 15:37:44 by theo             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,8 +69,7 @@ typedef struct s_data
 	long int		initial_time_to_eat;
 	long int		initial_time_to_sleep;
 	long int		times_each_philo_must_eat;
-	struct timeval	start;
-	struct timeval	end;
+	struct timeval	*start;
 }	t_data;
 
 typedef struct s_philo_data
@@ -79,13 +78,13 @@ typedef struct s_philo_data
 	long int	*time_to_die;
 	long int	*time_to_eat;
 	long int	*time_to_sleep;
-	int			*nbr_of_forks_held;
+	int			*forks_held;
 }	t_philo_data;
 
 void	free_philo(t_philo_data *philo_data)
 {
 	free (philo_data->name);
-	free (philo_data->nbr_of_forks_held);
+	free (philo_data->forks_held);
 	free (philo_data->time_to_die);
 	free (philo_data->time_to_eat);
 	free (philo_data->time_to_sleep);
@@ -141,7 +140,7 @@ int	ft_error(void)
 void	allocate_philo(t_data *data, t_philo_data *philo_data)
 {
 	philo_data->name = malloc(sizeof(int) * data->number_of_philo);
-	philo_data->nbr_of_forks_held = malloc(sizeof(int) * data->number_of_philo);
+	philo_data->forks_held = malloc(sizeof(int) * data->number_of_philo);
 	philo_data->time_to_die = malloc(sizeof(long int) * data->number_of_philo);
 	philo_data->time_to_eat = malloc(sizeof(long int) * data->number_of_philo);
 	philo_data->time_to_sleep = malloc(sizeof(long int) * data->number_of_philo);
@@ -163,16 +162,24 @@ void	philo_init(t_data *data, t_philo_data *philo_data)
 	}
 }
 
-// long int	time_diff(struct timeval *start, struct timeval *end)
-// {
-// 	return (end->tv_usec - start->tv_usec);
-// }
+long int	time_diff(struct timeval *start)
+{
+	long int		diff;
+	struct timeval	*end;
 
-// void	take_fork(t_philo_data *philo_data, t_data *data)
-// {
-// 	printf("%ld   %d has taken a fork\n", time_diff(&data->start, &data->end), philo_data->name);
-// }
+	gettimeofday(end, NULL);
+	diff = (end->tv_sec + (end->tv_usec * 10e6)) - (start->tv_sec + (start->tv_usec * 10e6));
+	return (diff);
+}
 
+void	take_fork(t_philo_data *philo_data, t_data *data)
+{
+	philo_data->forks_held++;
+	printf("%ld   %d has taken a fork\n", time_diff(&data->start), philo_data->name);
+}
+
+//mange un certain temps et doit garder ses fourchettes pendant ce temps
+//reset la faim
 // void	eat(t_philo_data *philo_data, t_data *data)
 // {
 // 	printf("%ld   %d is eating\n", time_diff(&data->start, &data->end), philo_data->name);
@@ -193,14 +200,17 @@ void	philo_init(t_data *data, t_philo_data *philo_data)
 // 	printf("%ld   %d died\n", time_diff(&data->start, &data->end), philo_data->name);
 // }
 
+// fin quand 1 philo meurt ou quand tous les philo ont suffisament mangé
 void	philosopher(t_philo_data *philo_data, t_data *data)
 {
 	int		i;
+	pthread_t	*thread;
 
 	i = 0;
-	while (data->times_each_philo_must_eat != 0)
+	while (1)
 	{
-		
+		pthread_create(thread, NULL, take_fork, //(void*) philo_data[i]);
+		i++;
 	}
 }
 
@@ -210,15 +220,12 @@ int	main(int argc, char *argv[])
 {
 	t_data				data;
 	t_philo_data		philo_data;
-	pthread_t			*philo;
-	pthread_mutex_t		mutex;
 
 	if (arguments_checker(argc, argv, &data) == -1)
 		return (ft_error());
-	philo = malloc(sizeof(pthread_t) * data.number_of_philo); // creer autant de threads que de philo
 	philo_init(&data, &philo_data);
+	gettimeofday(data.start, NULL);
 	philosopher(&philo_data, &data);
-	free (philo);
 	free_philo(&philo_data);
 	return (0);
 }
