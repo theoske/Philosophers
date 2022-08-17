@@ -6,7 +6,7 @@
 /*   By: theo <theo@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/08/17 15:37:44 by theo             ###   ########.fr       */
+/*   Updated: 2022/08/17 17:59:46 by theo             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -209,7 +209,7 @@ void	philosopher(t_philo_data *philo_data, t_data *data)
 	i = 0;
 	while (1)
 	{
-		pthread_create(thread, NULL, take_fork, //(void*) philo_data[i]);
+		// pthread_create(thread, NULL, (void *)take_fork, (void *) &philo_data[i]);
 		i++;
 	}
 }
