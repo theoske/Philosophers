@@ -6,7 +6,7 @@
 /*   By: theo <theo@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/08/18 12:09:14 by theo             ###   ########.fr       */
+/*   Updated: 2022/08/18 17:28:17 by theo             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,7 @@ typedef struct s_philo_data
 	long int		*time_to_eat;
 	long int		*time_to_sleep;
 	int				*forks_held;
-	struct timeval	*start;
+	struct timeval	start;
 	long int		*times_each_philo_must_eat;
 }	t_philo_data;
 
@@ -140,6 +140,16 @@ void	allocate_philo(t_data *data, t_philo_data *philo_data)
 	philo_data->time_to_die = malloc(sizeof(long int) * data->number_of_philo);
 	philo_data->time_to_eat = malloc(sizeof(long int) * data->number_of_philo);
 	philo_data->time_to_sleep = malloc(sizeof(long int) * data->number_of_philo);
+	philo_data->times_each_philo_must_eat = malloc(sizeof(int) * data->number_of_philo);
+}
+
+void	ft_memset(int long *str, int nbr, long int size)
+{
+	int		i;
+
+	i = 0;
+	while (i++ < size)
+		*(str + i) = (int long) nbr;
 }
 
 void	philo_init(t_data *data, t_philo_data *philo_data, int argc, char **argv)
@@ -148,7 +158,7 @@ void	philo_init(t_data *data, t_philo_data *philo_data, int argc, char **argv)
 
 	i = 0;
 	allocate_philo(data, philo_data);
-	while (i < data->number_of_philo)//segfault over 1
+	while (i < data->number_of_philo)
 	{
 		philo_data->name[i] = i + 1;
 		philo_data->time_to_die[i] = data->initial_time_to_die;
@@ -157,19 +167,19 @@ void	philo_init(t_data *data, t_philo_data *philo_data, int argc, char **argv)
 		i++;
 	}
 	if (argc == 6)
-		memset(philo_data->times_each_philo_must_eat, ft_atoi(argv[5]), sizeof(int) * data->number_of_philo);
+		ft_memset(philo_data->times_each_philo_must_eat, ft_atoi(argv[5]), data->number_of_philo);
 	else
-		memset(philo_data->times_each_philo_must_eat, -1, sizeof(int) * data->number_of_philo);
-	gettimeofday(philo_data->start, NULL);
+		ft_memset(philo_data->times_each_philo_must_eat, -1, data->number_of_philo);
+	gettimeofday(&philo_data->start, NULL);
 }
 
-long int	time_diff(struct timeval *start)
+long int	time_diff(struct timeval start)
 {
 	long int		diff;
-	struct timeval	*end;
+	struct timeval	end;
 
-	gettimeofday(end, NULL);
-	diff = (end->tv_sec + (end->tv_usec * 10e6)) - (start->tv_sec + (start->tv_usec * 10e6));
+	gettimeofday(&end, NULL);
+	diff = (end.tv_sec + (end.tv_usec * 10e6)) - (start.tv_sec + (start.tv_usec * 10e6));
 	return (diff);
 }
 
@@ -224,7 +234,7 @@ int	main(int argc, char *argv[])
 
 	if (arguments_checker(argc, argv, &data) == -1)
 		return (ft_error());
-	philo_init(&data, &philo_data, argc, argv);// segfault
+	philo_init(&data, &philo_data, argc, argv);
 	philosopher(&philo_data, &data);
 	free_philo(&philo_data);
 	return (0);
