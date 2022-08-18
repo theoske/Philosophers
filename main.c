@@ -6,7 +6,7 @@
 /*   By: theo <theo@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/08/17 17:59:46 by theo             ###   ########.fr       */
+/*   Updated: 2022/08/18 12:09:14 by theo             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,18 +67,18 @@ typedef struct s_data
 	long int		number_of_philo;
 	long int		initial_time_to_die;
 	long int		initial_time_to_eat;
-	long int		initial_time_to_sleep;
-	long int		times_each_philo_must_eat;
-	struct timeval	*start;
+	long int		initial_time_to_sleep;	
 }	t_data;
 
 typedef struct s_philo_data
 {
-	int			*name;
-	long int	*time_to_die;
-	long int	*time_to_eat;
-	long int	*time_to_sleep;
-	int			*forks_held;
+	int				*name;
+	long int		*time_to_die;
+	long int		*time_to_eat;
+	long int		*time_to_sleep;
+	int				*forks_held;
+	struct timeval	*start;
+	long int		*times_each_philo_must_eat;
 }	t_philo_data;
 
 void	free_philo(t_philo_data *philo_data)
@@ -88,6 +88,7 @@ void	free_philo(t_philo_data *philo_data)
 	free (philo_data->time_to_die);
 	free (philo_data->time_to_eat);
 	free (philo_data->time_to_sleep);
+	free (philo_data->times_each_philo_must_eat);
 }
 
 int	number_checker(char *argv[])
@@ -123,11 +124,6 @@ int	arguments_checker(int argc, char *argv[], t_data *data)
 	data->initial_time_to_die = ft_atoi(argv[2]);
 	data->initial_time_to_eat = ft_atoi(argv[3]);
 	data->initial_time_to_sleep = ft_atoi(argv[4]);
-	if (argc == 6)
-		data->times_each_philo_must_eat = ft_atoi(argv[5]);
-	else if (argc == 5)
-		data->times_each_philo_must_eat = -1;
-	gettimeofday(&data->start, NULL);
 	return (0);
 }
 
@@ -146,7 +142,7 @@ void	allocate_philo(t_data *data, t_philo_data *philo_data)
 	philo_data->time_to_sleep = malloc(sizeof(long int) * data->number_of_philo);
 }
 
-void	philo_init(t_data *data, t_philo_data *philo_data)
+void	philo_init(t_data *data, t_philo_data *philo_data, int argc, char **argv)
 {
 	int		i;
 
@@ -160,6 +156,11 @@ void	philo_init(t_data *data, t_philo_data *philo_data)
 		philo_data->time_to_sleep[i] = data->initial_time_to_sleep;
 		i++;
 	}
+	if (argc == 6)
+		memset(philo_data->times_each_philo_must_eat, ft_atoi(argv[5]), sizeof(int) * data->number_of_philo);
+	else
+		memset(philo_data->times_each_philo_must_eat, -1, sizeof(int) * data->number_of_philo);
+	gettimeofday(philo_data->start, NULL);
 }
 
 long int	time_diff(struct timeval *start)
@@ -175,7 +176,7 @@ long int	time_diff(struct timeval *start)
 void	take_fork(t_philo_data *philo_data, t_data *data)
 {
 	philo_data->forks_held++;
-	printf("%ld   %d has taken a fork\n", time_diff(&data->start), philo_data->name);
+	printf("%ld   %d has taken a fork\n", time_diff(philo_data->start), *philo_data->name);
 }
 
 //mange un certain temps et doit garder ses fourchettes pendant ce temps
@@ -209,7 +210,7 @@ void	philosopher(t_philo_data *philo_data, t_data *data)
 	i = 0;
 	while (1)
 	{
-		// pthread_create(thread, NULL, (void *)take_fork, (void *) &philo_data[i]);
+		// pthread_create(thread, NULL, (void *)take_fork, &philo_data[i], data);
 		i++;
 	}
 }
@@ -223,8 +224,7 @@ int	main(int argc, char *argv[])
 
 	if (arguments_checker(argc, argv, &data) == -1)
 		return (ft_error());
-	philo_init(&data, &philo_data);
-	gettimeofday(data.start, NULL);
+	philo_init(&data, &philo_data, argc, argv);// segfault
 	philosopher(&philo_data, &data);
 	free_philo(&philo_data);
 	return (0);
