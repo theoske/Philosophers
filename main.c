@@ -6,7 +6,7 @@
 /*   By: theo <theo@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/08/18 18:38:29 by theo             ###   ########.fr       */
+/*   Updated: 2022/08/19 17:07:32 by theo             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,7 +134,8 @@ void	ft_memset(t_philo_data *philo_data, int nbr, long int size)
 
 void	philo_init(t_data *data, t_philo_data *philo_data, int argc, char **argv)
 {
-	int		i;
+	int				i;
+	// t_philo_data	*philo = malloc(sizeof(t_philo_data));
 
 	i = 0;
 	philo_data = malloc(sizeof(t_philo_data) * data->number_of_philo);
@@ -145,12 +146,12 @@ void	philo_init(t_data *data, t_philo_data *philo_data, int argc, char **argv)
 		philo_data[i].time_to_eat = data->initial_time_to_eat;
 		philo_data[i].time_to_sleep = data->initial_time_to_sleep;
 		gettimeofday(&philo_data[i].start, NULL);
+		if (argc == 6)
+			philo_data[i].times_each_philo_must_eat = ft_atoi(argv[5]);
+		else
+			philo_data[i].times_each_philo_must_eat = -1;
 		i++;
 	}
-	if (argc == 6)
-		ft_memset(philo_data, ft_atoi(argv[5]), data->number_of_philo);
-	else
-		ft_memset(philo_data, -1, data->number_of_philo);
 }
 
 long int	time_diff(struct timeval start)
@@ -194,13 +195,13 @@ void	take_fork(t_philo_data *philo_data, t_data *data, int i)
 // fin quand 1 philo meurt ou quand tous les philo ont suffisament mangé
 void	philosopher(t_philo_data *philo_data, t_data *data)
 {
-	int		i;
+	int			i;
 	pthread_t	*thread;
 
 	i = 0;
 	while (1)
 	{
-		pthread_create(thread, NULL, (void *)take_fork, philo_data + i);
+		// pthread_create(thread, NULL, (void *)take_fork, philo_data + i);
 		i++;
 	}
 }
@@ -218,7 +219,7 @@ int	main(int argc, char *argv[])
 		return (ft_error());
 	philo_init(&data, philo_data, argc, argv);
 	philosopher(philo_data, &data);
-	free(philo_data);
+	// free(philo_data);
 	return (0);
 }
 
