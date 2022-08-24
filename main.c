@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: theo <theo@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/08/19 17:07:32 by theo             ###   ########.fr       */
+/*   Updated: 2022/08/24 16:44:30 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,9 +76,13 @@ typedef struct s_philo_data
 	long int		time_to_die;
 	long int		time_to_eat;
 	long int		time_to_sleep;
-	int				forks_held;
+	long long		time_left;
+	int				right_fork;
+	int				left_fork;
 	struct timeval	start;
 	long int		times_each_philo_must_eat;
+	pthread_t		thread;
+	pthread_mutex_t	fork;
 }	t_philo_data;
 
 int	number_checker(char *argv[])
@@ -160,22 +164,30 @@ long int	time_diff(struct timeval start)
 	struct timeval	end;
 
 	gettimeofday(&end, NULL);
-	diff = (end.tv_sec + (end.tv_usec * 10e6)) - (start.tv_sec + (start.tv_usec * 10e6));
+	diff = ((end.tv_sec * 1000) + (end.tv_usec / 1000)) - ((start.tv_sec * 1000) + (start.tv_usec / 1000));
 	return (diff);
 }
 
 void	take_fork(t_philo_data *philo_data, t_data *data, int i)
 {
-	philo_data->forks_held++;
+	philo_data->right_fork++;
 	printf("%ld   %d has taken a fork\n", time_diff(philo_data->start), philo_data[i].name);
 }
 
 //mange un certain temps et doit garder ses fourchettes pendant ce temps
 //reset la faim
-// void	eat(t_philo_data *philo_data, t_data *data)
-// {
-// 	printf("%ld   %d is eating\n", time_diff(&data->start, &data->end), philo_data->name);
-// }
+void	eat(t_philo_data **philo_data, t_data *data)
+{
+	int		i;
+
+	i = 0;
+	while (i < data->number_of_philo)
+	{
+		if (philo_data[i]->name % 2)
+			
+		i++;
+	}
+}
 
 // void	sleeping(t_philo_data *philo_data, t_data *data)
 // {
@@ -201,7 +213,8 @@ void	philosopher(t_philo_data *philo_data, t_data *data)
 	i = 0;
 	while (1)
 	{
-		// pthread_create(thread, NULL, (void *)take_fork, philo_data + i);
+		eat(philo_data, data);
+		printf("a\n");
 		i++;
 	}
 }
@@ -209,7 +222,12 @@ void	philosopher(t_philo_data *philo_data, t_data *data)
 // take in account time to die/eat/sleep
 // number_of_philos		time_to_die 	time_to_eat		time_to_sleep	[times_each_philo_must_eat]
 
-// faire marecher avec le tableau de structure
+/*
+chaque fourchette est une zone memoire.
+les threads (philosophes) peuvent allouer cette memoire (eat), 
+faire autre chose (sleep) 
+ou attendre qu'elle se libere (think).
+*/
 int	main(int argc, char *argv[])
 {
 	t_data				data;
@@ -222,7 +240,6 @@ int	main(int argc, char *argv[])
 	// free(philo_data);
 	return (0);
 }
-
 /*
 	Threads : nouveaux processus executant une fonction.
 pthread_join est un point ou les threads s'attendent.
