@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/08/24 16:44:30 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/08/29 18:15:33 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -183,8 +183,7 @@ void	eat(t_philo_data **philo_data, t_data *data)
 	i = 0;
 	while (i < data->number_of_philo)
 	{
-		if (philo_data[i]->name % 2)
-			
+					
 		i++;
 	}
 }
@@ -223,10 +222,26 @@ void	philosopher(t_philo_data *philo_data, t_data *data)
 // number_of_philos		time_to_die 	time_to_eat		time_to_sleep	[times_each_philo_must_eat]
 
 /*
-chaque fourchette est une zone memoire.
-les threads (philosophes) peuvent allouer cette memoire (eat), 
-faire autre chose (sleep) 
-ou attendre qu'elle se libere (think).
+	chaque fourchette doit etre representee par une valeur dans un tableau.
+	avec un 1 si elle est disponible ou 0 si elle est prise.
+	
+	while (TRUE)
+	{
+		wait(fork[i])
+		wait(fork[(i + 1) % nbre de philo])
+		
+		*eat*
+		signal(fork[i])
+		signal(fork[(i + 1) % nbre de philo])
+		*sleep*
+		*think*
+	}
+	personne ne mange en meme temps mais deadlock qui bloque le programme
+
+	Solutions :
+				- /!\ un philosophe commence sans fourchette  /!\ tester celle là
+				- les philosophes ne peuvent prendre une fourchette que si elle est libre
+				- philos paires prennent fourchette de gauche et impairs celle de droite
 */
 int	main(int argc, char *argv[])
 {
