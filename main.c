@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/08/29 18:15:33 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/08/30 18:11:32 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,8 @@ typedef struct s_data
 	long int		number_of_philo;
 	long int		initial_time_to_die;
 	long int		initial_time_to_eat;
-	long int		initial_time_to_sleep;	
+	long int		initial_time_to_sleep;
+	int				*fork;	
 }	t_data;
 
 typedef struct s_philo_data
@@ -77,12 +78,9 @@ typedef struct s_philo_data
 	long int		time_to_eat;
 	long int		time_to_sleep;
 	long long		time_left;
-	int				right_fork;
-	int				left_fork;
 	struct timeval	start;
 	long int		times_each_philo_must_eat;
 	pthread_t		thread;
-	pthread_mutex_t	fork;
 }	t_philo_data;
 
 int	number_checker(char *argv[])
@@ -139,10 +137,13 @@ void	ft_memset(t_philo_data *philo_data, int nbr, long int size)
 void	philo_init(t_data *data, t_philo_data *philo_data, int argc, char **argv)
 {
 	int				i;
-	// t_philo_data	*philo = malloc(sizeof(t_philo_data));
 
 	i = 0;
 	philo_data = malloc(sizeof(t_philo_data) * data->number_of_philo);
+	data->fork = malloc(sizeof(int) * data->number_of_philo);
+	while (i++ < data->number_of_philo)
+		data->fork[i] = 1;
+	i = 0;
 	while (i < data->number_of_philo)
 	{
 		philo_data[i].name = i + 1;
