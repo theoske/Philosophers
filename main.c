@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/08/31 16:57:27 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/08/31 17:03:32 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -156,7 +156,7 @@ void	init_fork(t_data *data, t_philo_data **philo)
 	i = 0;
 	while (i++ < data->number_of_philo)
 	{
-		if (i = 0)
+		if (i == 0)
 		{
 			philo[i]->left_fork = &data->fork[i];
 			philo[i]->right_fork = &data->fork[data->number_of_philo - 1];
@@ -170,28 +170,26 @@ void	init_fork(t_data *data, t_philo_data **philo)
 	}
 }
 
-void	philo_init(t_data *data, t_philo_data *philo, int argc, char **argv)
+void	philo_init(t_data *data, t_philo_data **philo, int argc, char **argv)
 {
 	int				i;
 
 	i = 0;
 	philo = malloc(sizeof(t_philo_data) * data->number_of_philo);
 	data->fork = malloc(sizeof(int) * data->number_of_philo);
-	while (i++ < data->number_of_philo)
-		data->fork[i] = 1;
-	init_fork(&data, &philo);
+	init_fork(data, philo);
 	i = 0;
 	while (i < data->number_of_philo)
 	{
-		philo[i].name = i + 1;
-		philo[i].time_to_die = data->initial_time_to_die;
-		philo[i].time_to_eat = data->initial_time_to_eat;
-		philo[i].time_to_sleep = data->initial_time_to_sleep;
-		gettimeofday(&philo[i].start, NULL);
+		philo[i]->name = i + 1;
+		philo[i]->time_to_die = data->initial_time_to_die;
+		philo[i]->time_to_eat = data->initial_time_to_eat;
+		philo[i]->time_to_sleep = data->initial_time_to_sleep;
+		gettimeofday(&philo[i]->start, NULL);
 		if (argc == 6)
-			philo[i].times_each_philo_must_eat = ft_atoi(argv[5]);
+			philo[i]->times_each_philo_must_eat = ft_atoi(argv[5]);
 		else
-			philo[i].times_each_philo_must_eat = -1;
+			philo[i]->times_each_philo_must_eat = -1;
 		i++;
 	}
 }
@@ -242,7 +240,7 @@ void	eat(t_philo_data **philo, t_data *data)
 // }
 
 // fin quand 1 philo meurt ou quand tous les philo ont suffisament mangé
-void	philosopher(t_philo_data *philo, t_data *data)
+void	philosopher(t_philo_data **philo, t_data *data)
 {
 	int			i;
 	pthread_t	*thread;
@@ -288,8 +286,8 @@ int	main(int argc, char *argv[])
 
 	if (arguments_checker(argc, argv, &data) == -1)
 		return (ft_error());
-	philo_init(&data, philo, argc, argv);
-	philosopher(philo, &data);
+	philo_init(&data, &philo, argc, argv);
+	philosopher(&philo, &data);
 	ft_free(&data, &philo);
 	return (0);
 }
