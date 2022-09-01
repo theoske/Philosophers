@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/09/01 18:01:08 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/09/01 18:13:31 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -286,7 +286,9 @@ int	main(int argc, char *argv[])
 	i = 0;
 	while (i++ < ft_atoi(argv[1]))
 		philo_init(&data, &philo[i], argc, argv);
-	// philosopher(&philo, &data);
+	i = 0;
+	while (i++ < data.number_of_philo)	
+		philosopher(&philo[i], &data);
 	ft_free(&data);
 	return (0);
 }
