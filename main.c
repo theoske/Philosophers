@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/09/01 13:09:44 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/09/01 14:52:08 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,50 +149,37 @@ void	ft_free(t_data *data, t_philo_data **philo)
 	free (philo);
 }
 
-void	init_fork(t_data *data, t_philo_data **philo)
+void	init_fork(t_data *data, t_philo_data *philo, int i)
 {
-	int		i;
-
-	i = 0;
-	while (i++ < data->number_of_philo)
+	if (i == 0)
 	{
-		if (i == 0)
-		{
-			philo[i]->left_fork = &data->fork[i];
-			philo[i]->right_fork = &data->fork[data->number_of_philo - 1];
-		}
-		else
-		{
-			philo[i]->left_fork = &data->fork[i];
-			philo[i]->right_fork = &data->fork[i - 1];
-		}
-		pthread_mutex_init(&data->fork[i], NULL);
+		philo->left_fork = &data->fork[i];
+		philo->right_fork = &data->fork[data->number_of_philo - 1];
 	}
+	else
+	{
+		philo->left_fork = &data->fork[i];
+		philo->right_fork = &data->fork[i - 1];
+	}
+	pthread_mutex_init(&data->fork[i], NULL);
 }
 
-t_philo_data	*philo_init(t_data *data, int argc, char **argv)
+void	philo_init(t_data *data, t_philo_data *philo, int argc, char **argv)
 {
-	int				i;
-	t_philo_data	philo[250];
+	static int	i = 0;
 
-	i = 0;
 	data->fork = malloc(sizeof(pthread_mutex_t) * data->number_of_philo);
-	init_fork(data, (t_philo_data **)&philo);
-	i = 0;
-	// while (i < data->number_of_philo + 1)
-	// {
-	// 	philo[i]->name = i + 1;
-	// 	philo[i]->time_to_die = data->initial_time_to_die;
-	// 	philo[i]->time_to_eat = data->initial_time_to_eat;
-	// 	philo[i]->time_to_sleep = data->initial_time_to_sleep;
-	// 	gettimeofday(&philo[i]->start, NULL);
-	// 	if (argc == 6)
-	// 		philo[i]->times_each_philo_must_eat = ft_atoi(argv[5]);
-	// 	else
-	// 		philo[i]->times_each_philo_must_eat = -1;
-	// 	i++;
-	// }
-	return (philo);
+	init_fork(data, philo, i);
+	philo->name = i + 1;
+	philo->time_to_die = data->initial_time_to_die;
+	philo->time_to_eat = data->initial_time_to_eat;
+	philo->time_to_sleep = data->initial_time_to_sleep;
+	gettimeofday(&philo->start, NULL);
+	if (argc == 6)
+		philo->times_each_philo_must_eat = ft_atoi(argv[5]);
+	else
+		philo->times_each_philo_must_eat = -1;
+	i++;
 }
 
 long int	time_diff(struct timeval start)
@@ -283,11 +270,14 @@ void	philosopher(t_philo_data **philo, t_data *data)
 int	main(int argc, char *argv[])
 {
 	t_data				data;
-	t_philo_data		*philo;
-
+	t_philo_data		philo[250];
+	int					i;
+	
 	if (arguments_checker(argc, argv, &data) == -1)
 		return (ft_error());
-	philo = philo_init(&data, argc, argv);
+	i = 0;
+	while (i++ < ft_atoi(argv[1]))
+		philo_init(&data, &philo[i], argc, argv);
 	// philosopher(&philo, &data);
 	// ft_free(&data, &philo);
 	return (0);
