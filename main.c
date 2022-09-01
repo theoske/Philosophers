@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/09/01 14:52:08 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/09/01 18:01:08 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,7 @@ typedef struct s_philo_data
 	long long		time_left;
 	void			*left_fork;
 	void			*right_fork;
-	struct timeval	start;
+	long long int	time_now;
 	long int		times_each_philo_must_eat;
 	pthread_t		thread;
 }	t_philo_data;
@@ -136,7 +136,7 @@ void	ft_memset(t_philo_data *philo, int nbr, long int size)
 		philo->times_each_philo_must_eat = (int long) nbr;
 }
 
-void	ft_free(t_data *data, t_philo_data **philo)
+void	ft_free(t_data *data)
 {
 	int		i;
 
@@ -146,7 +146,6 @@ void	ft_free(t_data *data, t_philo_data **philo)
 		pthread_mutex_destroy(&data->fork[i]);
 	}
 	free (data->fork);
-	free (philo);
 }
 
 void	init_fork(t_data *data, t_philo_data *philo, int i)
@@ -164,6 +163,17 @@ void	init_fork(t_data *data, t_philo_data *philo, int i)
 	pthread_mutex_init(&data->fork[i], NULL);
 }
 
+long long int	gettime(void)
+{
+	struct timeval	t;
+	long long int	time;
+
+	gettimeofday(&t, NULL);
+	time = t.tv_sec * 1000;
+	time += t.tv_usec / 1000;
+	return (time);
+}
+
 void	philo_init(t_data *data, t_philo_data *philo, int argc, char **argv)
 {
 	static int	i = 0;
@@ -174,7 +184,7 @@ void	philo_init(t_data *data, t_philo_data *philo, int argc, char **argv)
 	philo->time_to_die = data->initial_time_to_die;
 	philo->time_to_eat = data->initial_time_to_eat;
 	philo->time_to_sleep = data->initial_time_to_sleep;
-	gettimeofday(&philo->start, NULL);
+	philo->time_now = gettime();
 	if (argc == 6)
 		philo->times_each_philo_must_eat = ft_atoi(argv[5]);
 	else
@@ -182,21 +192,19 @@ void	philo_init(t_data *data, t_philo_data *philo, int argc, char **argv)
 	i++;
 }
 
-long int	time_diff(struct timeval start)
+long int	time_diff(struct timeval time_now)
 {
 	long int		diff;
 	struct timeval	end;
 
 	gettimeofday(&end, NULL);
-	diff = ((end.tv_sec * 1000) + (end.tv_usec / 1000)) - ((start.tv_sec * 1000) + (start.tv_usec / 1000));
+	diff = ((end.tv_sec * 1000) + (end.tv_usec / 1000)) - ((time_now.tv_sec * 1000) + (time_now.tv_usec / 1000));
 	return (diff);
 }
 
-void	take_fork(t_philo_data *philo, t_data *data, int i)
-{
-	philo->right_fork++;
-	printf("%ld   %d has taken a fork\n", time_diff(philo->start), philo[i].name);
-}
+// void	take_fork(t_philo_data *philo, t_data *data, int i)
+// {
+// }
 
 //mange un certain temps et doit garder ses fourchettes pendant ce temps
 //reset la faim
@@ -214,17 +222,17 @@ void	eat(t_philo_data **philo, t_data *data)
 
 // void	sleeping(t_philo_data *philo, t_data *data)
 // {
-// 	printf("%ld   %d is sleeping\n", time_diff(&data->start, &data->end), philo->name);
+// 	printf("%ld   %d is sleeping\n", time_diff(&data->time_now, &data->end), philo->name);
 // }
 
 // void	think(t_philo_data *philo, t_data *data)
 // {
-// 	printf("%ld   %d is thinking\n", time_diff(&data->start, &data->end), philo->name);
+// 	printf("%ld   %d is thinking\n", time_diff(&data->time_now, &data->end), philo->name);
 // }
 
 // void	died(t_philo_data *philo, t_data *data)
 // {
-// 	printf("%ld   %d died\n", time_diff(&data->start, &data->end), philo->name);
+// 	printf("%ld   %d died\n", time_diff(&data->time_now, &data->end), philo->name);
 // }
 
 // fin quand 1 philo meurt ou quand tous les philo ont suffisament mangé
@@ -279,7 +287,7 @@ int	main(int argc, char *argv[])
 	while (i++ < ft_atoi(argv[1]))
 		philo_init(&data, &philo[i], argc, argv);
 	// philosopher(&philo, &data);
-	// ft_free(&data, &philo);
+	ft_free(&data);
 	return (0);
 }
 //mettre philo[250] et passer chaque case une par une
