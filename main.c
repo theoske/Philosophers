@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/08/31 17:03:32 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/09/01 13:09:44 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -170,28 +170,29 @@ void	init_fork(t_data *data, t_philo_data **philo)
 	}
 }
 
-void	philo_init(t_data *data, t_philo_data **philo, int argc, char **argv)
+t_philo_data	*philo_init(t_data *data, int argc, char **argv)
 {
 	int				i;
+	t_philo_data	philo[250];
 
 	i = 0;
-	philo = malloc(sizeof(t_philo_data) * data->number_of_philo);
-	data->fork = malloc(sizeof(int) * data->number_of_philo);
-	init_fork(data, philo);
+	data->fork = malloc(sizeof(pthread_mutex_t) * data->number_of_philo);
+	init_fork(data, (t_philo_data **)&philo);
 	i = 0;
-	while (i < data->number_of_philo)
-	{
-		philo[i]->name = i + 1;
-		philo[i]->time_to_die = data->initial_time_to_die;
-		philo[i]->time_to_eat = data->initial_time_to_eat;
-		philo[i]->time_to_sleep = data->initial_time_to_sleep;
-		gettimeofday(&philo[i]->start, NULL);
-		if (argc == 6)
-			philo[i]->times_each_philo_must_eat = ft_atoi(argv[5]);
-		else
-			philo[i]->times_each_philo_must_eat = -1;
-		i++;
-	}
+	// while (i < data->number_of_philo + 1)
+	// {
+	// 	philo[i]->name = i + 1;
+	// 	philo[i]->time_to_die = data->initial_time_to_die;
+	// 	philo[i]->time_to_eat = data->initial_time_to_eat;
+	// 	philo[i]->time_to_sleep = data->initial_time_to_sleep;
+	// 	gettimeofday(&philo[i]->start, NULL);
+	// 	if (argc == 6)
+	// 		philo[i]->times_each_philo_must_eat = ft_atoi(argv[5]);
+	// 	else
+	// 		philo[i]->times_each_philo_must_eat = -1;
+	// 	i++;
+	// }
+	return (philo);
 }
 
 long int	time_diff(struct timeval start)
@@ -286,11 +287,13 @@ int	main(int argc, char *argv[])
 
 	if (arguments_checker(argc, argv, &data) == -1)
 		return (ft_error());
-	philo_init(&data, &philo, argc, argv);
-	philosopher(&philo, &data);
-	ft_free(&data, &philo);
+	philo = philo_init(&data, argc, argv);
+	// philosopher(&philo, &data);
+	// ft_free(&data, &philo);
 	return (0);
 }
+//mettre philo[250] et passer chaque case une par une
+
 /*
 	Threads : nouveaux processus executant une fonction.
 pthread_join est un point ou les threads s'attendent.
