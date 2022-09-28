@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/09/01 18:13:31 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/09/28 16:43:25 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -178,13 +178,14 @@ void	philo_init(t_data *data, t_philo_data *philo, int argc, char **argv)
 {
 	static int	i = 0;
 
+
 	data->fork = malloc(sizeof(pthread_mutex_t) * data->number_of_philo);
 	init_fork(data, philo, i);
 	philo->name = i + 1;
-	philo->time_to_die = data->initial_time_to_die;
-	philo->time_to_eat = data->initial_time_to_eat;
-	philo->time_to_sleep = data->initial_time_to_sleep;
-	philo->time_now = gettime();
+	philo->time_to_die = data->initial_time_to_die * 1000;
+	philo->time_to_eat = data->initial_time_to_eat * 1000;
+	philo->time_to_sleep = data->initial_time_to_sleep * 1000;
+	philo->time_now = gettime() * 1000;
 	if (argc == 6)
 		philo->times_each_philo_must_eat = ft_atoi(argv[5]);
 	else
@@ -208,16 +209,10 @@ long int	time_diff(struct timeval time_now)
 
 //mange un certain temps et doit garder ses fourchettes pendant ce temps
 //reset la faim
-void	eat(t_philo_data **philo, t_data *data)
+void	eat(t_philo_data *philo)
 {
-	int		i;
-
-	i = 0;
-	while (i < data->number_of_philo)
-	{
-					
-		i++;
-	}
+	printf("%lld    %d is eating\n", gettime(), philo->name);
+	usleep(philo->time_to_eat);
 }
 
 // void	sleeping(t_philo_data *philo, t_data *data)
@@ -235,17 +230,14 @@ void	eat(t_philo_data **philo, t_data *data)
 // 	printf("%ld   %d died\n", time_diff(&data->time_now, &data->end), philo->name);
 // }
 
-// fin quand 1 philo meurt ou quand tous les philo ont suffisament mangé
-void	philosopher(t_philo_data **philo, t_data *data)
+void	philosopher(t_philo_data *philo)
 {
 	int			i;
-	pthread_t	*thread;
 
 	i = 0;
 	while (1)
 	{
-		eat(philo, data);
-		printf("a\n");
+		eat(philo);
 		i++;
 	}
 }
@@ -280,15 +272,18 @@ int	main(int argc, char *argv[])
 	t_data				data;
 	t_philo_data		philo[250];
 	int					i;
-	
+
 	if (arguments_checker(argc, argv, &data) == -1)
 		return (ft_error());
 	i = 0;
 	while (i++ < ft_atoi(argv[1]))
 		philo_init(&data, &philo[i], argc, argv);
 	i = 0;
-	while (i++ < data.number_of_philo)	
-		philosopher(&philo[i], &data);
+	while (i++ < data.number_of_philo)
+		pthread_create(&philo[i].thread, NULL, (void *)philosopher, &philo[i]);
+	i = 0;
+	while (i++ < data.number_of_philo)
+		pthread_join(philo[i].thread, NULL);
 	ft_free(&data);
 	return (0);
 }
