@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/09/28 16:43:25 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/09/28 17:57:36 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,6 @@ typedef struct s_data
 	long int		initial_time_to_die;
 	long int		initial_time_to_eat;
 	long int		initial_time_to_sleep;
-	pthread_mutex_t	*fork;	
 }	t_data;
 
 typedef struct s_philo_data
@@ -78,8 +77,9 @@ typedef struct s_philo_data
 	long int		time_to_eat;
 	long int		time_to_sleep;
 	long long		time_left;
-	void			*left_fork;
-	void			*right_fork;
+	pthread_mutex_t	fork;
+	pthread_mutex_t	*left_fork;
+	pthread_mutex_t	*right_fork;
 	long long int	time_now;
 	long int		times_each_philo_must_eat;
 	pthread_t		thread;
@@ -135,32 +135,25 @@ void	ft_memset(t_philo_data *philo, int nbr, long int size)
 	while (i++ < size)
 		philo->times_each_philo_must_eat = (int long) nbr;
 }
-
-void	ft_free(t_data *data)
-{
-	int		i;
-
-	i = 0;
-	while (i++ < data->number_of_philo)
-	{
-		pthread_mutex_destroy(&data->fork[i]);
-	}
-	free (data->fork);
-}
-
-void	init_fork(t_data *data, t_philo_data *philo, int i)
+//segfault
+void	init_fork(t_data *data, t_philo_data (*philo)[250], int i)
 {
 	if (i == 0)
 	{
-		philo->left_fork = &data->fork[i];
-		philo->right_fork = &data->fork[data->number_of_philo - 1];
+		philo[i]->left_fork = &philo[i + 1]->fork;
+		philo[i]->right_fork = &philo[data->number_of_philo - 1]->fork;
+	}
+	else if (i == data->number_of_philo - 1)
+	{
+		philo[i]->left_fork = &philo[0]->fork;
+		philo[i]->right_fork = &philo[i - 1]->fork;
 	}
 	else
 	{
-		philo->left_fork = &data->fork[i];
-		philo->right_fork = &data->fork[i - 1];
+		philo[i]->left_fork = &philo[i + 1]->fork;
+		philo[i]->right_fork = &philo[i - 1]->fork;
 	}
-	pthread_mutex_init(&data->fork[i], NULL);
+	pthread_mutex_init(&philo[i]->fork, NULL);
 }
 
 long long int	gettime(void)
@@ -174,23 +167,24 @@ long long int	gettime(void)
 	return (time);
 }
 
-void	philo_init(t_data *data, t_philo_data *philo, int argc, char **argv)
+void	philo_init(t_data *data, t_philo_data (*philo)[250], int argc, char **argv)
 {
-	static int	i = 0;
+	int		i;
 
-
-	data->fork = malloc(sizeof(pthread_mutex_t) * data->number_of_philo);
-	init_fork(data, philo, i);
-	philo->name = i + 1;
-	philo->time_to_die = data->initial_time_to_die * 1000;
-	philo->time_to_eat = data->initial_time_to_eat * 1000;
-	philo->time_to_sleep = data->initial_time_to_sleep * 1000;
-	philo->time_now = gettime() * 1000;
-	if (argc == 6)
-		philo->times_each_philo_must_eat = ft_atoi(argv[5]);
-	else
-		philo->times_each_philo_must_eat = -1;
-	i++;
+	i = 0;
+	while (i++ < data->number_of_philo)
+	{
+		init_fork(data, philo, i);
+		philo[i]->name = i + 1;
+		philo[i]->time_to_die = data->initial_time_to_die * 1000;
+		philo[i]->time_to_eat = data->initial_time_to_eat * 1000;
+		philo[i]->time_to_sleep = data->initial_time_to_sleep * 1000;
+		philo[i]->time_now = gettime() * 1000;
+		if (argc == 6)
+			philo[i]->times_each_philo_must_eat = ft_atoi(argv[5]);
+		else
+			philo[i]->times_each_philo_must_eat = -1;
+	}
 }
 
 long int	time_diff(struct timeval time_now)
@@ -209,16 +203,17 @@ long int	time_diff(struct timeval time_now)
 
 //mange un certain temps et doit garder ses fourchettes pendant ce temps
 //reset la faim
-void	eat(t_philo_data *philo)
+void	eating(t_philo_data *philo, long long int time_now)
 {
-	printf("%lld    %d is eating\n", gettime(), philo->name);
+	printf("%lld    %d is eating\n", gettime() - time_now, philo->name);
 	usleep(philo->time_to_eat);
 }
 
-// void	sleeping(t_philo_data *philo, t_data *data)
-// {
-// 	printf("%ld   %d is sleeping\n", time_diff(&data->time_now, &data->end), philo->name);
-// }
+void	sleeping(t_philo_data *philo, long long int time_now)
+{
+	printf("%lld   %d is sleeping\n", gettime() - time_now, philo->name);
+	usleep(philo->time_to_sleep);
+}
 
 // void	think(t_philo_data *philo, t_data *data)
 // {
@@ -232,13 +227,13 @@ void	eat(t_philo_data *philo)
 
 void	philosopher(t_philo_data *philo)
 {
-	int			i;
+	long long int	time_now;
 
-	i = 0;
+	time_now = gettime();
 	while (1)
 	{
-		eat(philo);
-		i++;
+		eating(philo, time_now);
+		sleeping(philo, time_now);
 	}
 }
 
@@ -275,16 +270,13 @@ int	main(int argc, char *argv[])
 
 	if (arguments_checker(argc, argv, &data) == -1)
 		return (ft_error());
-	i = 0;
-	while (i++ < ft_atoi(argv[1]))
-		philo_init(&data, &philo[i], argc, argv);
+	philo_init(&data, &philo, argc, argv);
 	i = 0;
 	while (i++ < data.number_of_philo)
 		pthread_create(&philo[i].thread, NULL, (void *)philosopher, &philo[i]);
 	i = 0;
 	while (i++ < data.number_of_philo)
 		pthread_join(philo[i].thread, NULL);
-	ft_free(&data);
 	return (0);
 }
 //mettre philo[250] et passer chaque case une par une
