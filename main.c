@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/09/29 17:17:56 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/09/29 19:33:11 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,11 +76,13 @@ typedef struct s_philo_data
 	long int		time_to_die;
 	long int		time_to_eat;
 	long int		time_to_sleep;
-	long long		time_left;
+	long long		time_left;//not used
 	pthread_mutex_t	fork;
 	pthread_mutex_t	*right_fork;
-	long long int	time_now;
-	long int		times_each_philo_must_eat;
+	int				is_fork_locked;
+	int				*is_right_fork_locked;
+	long long int	time_now;//not used
+	long int		times_each_philo_must_eat;//not used
 	pthread_t		thread;
 }	t_philo_data;
 
@@ -138,6 +140,8 @@ void	ft_memset(t_philo_data *philo, int nbr, long int size)
 void	init_fork(t_data *data, t_philo_data *philo, t_philo_data *philo2)
 {
 	philo->right_fork = &philo2->fork;
+	philo->is_fork_locked = 0;
+	philo->is_right_fork_locked = &philo2->is_fork_locked;
 	pthread_mutex_init(&philo->fork, NULL);
 }
 
@@ -177,10 +181,20 @@ long int	time_diff(struct timeval time_now)
 	diff = ((end.tv_sec * 1000) + (end.tv_usec / 1000)) - ((time_now.tv_sec * 1000) + (time_now.tv_usec / 1000));
 	return (diff);
 }
-
-// void	take_fork(t_philo_data *philo, t_data *data, int i)
-// {
-// }
+//a faire
+void	take_fork(t_philo_data *philo, long long int time_now)
+{
+	if (philo->is_fork_locked == 0)
+	{
+		pthread_mutex_lock(&philo->fork);
+		philo->is_fork_locked = 1;
+	}
+	if (philo->is_right_fork_locked == 0)
+	{
+		pthread_mutex_lock(philo->right_fork);
+		philo->is_right_fork_locked = 1;
+	}
+}
 
 //mange un certain temps et doit garder ses fourchettes pendant ce temps
 //reset la faim
@@ -188,6 +202,7 @@ void	eating(t_philo_data *philo, long long int time_now)
 {
 	printf("%lld    %d is eating\n", gettime() - time_now, philo->name);
 	usleep(philo->time_to_eat);
+	//mutex unlock
 }
 
 void	sleeping(t_philo_data *philo, long long int time_now)
@@ -214,6 +229,7 @@ void	philosopher(t_philo_data *philo)
 	time_now = gettime();
 	while (1)
 	{
+		take_fork(philo, time_now);
 		eating(philo, time_now);
 		sleeping(philo, time_now);
 		thinking(philo, time_now);
@@ -245,6 +261,8 @@ void	philosopher(t_philo_data *philo)
 				- les philosophes ne peuvent prendre une fourchette que si elle est libre
 				- philos paires prennent fourchette de gauche et impairs celle de droite
 */
+
+//faire fonctionnement fourchettes
 int	main(int argc, char *argv[])
 {
 	t_data				data;
