@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/09/29 16:56:59 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/09/29 17:17:56 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -156,7 +156,6 @@ void	philo_init(t_data *data, t_philo_data *philo, int argc, char **argv)
 {
 	static int	i = 0;
 
-	// init_fork(data, philo, i);
 	philo->name = i + 1;
 	philo->time_to_die = data->initial_time_to_die * 1000;
 	philo->time_to_eat = data->initial_time_to_eat * 1000;
@@ -197,10 +196,11 @@ void	sleeping(t_philo_data *philo, long long int time_now)
 	usleep(philo->time_to_sleep);
 }
 
-// void	think(t_philo_data *philo, t_data *data)
-// {
-// 	printf("%ld   %d is thinking\n", time_diff(&data->time_now, &data->end), philo->name);
-// }
+void	thinking(t_philo_data *philo, long long int time_now)
+{
+	printf("%lld   %d is thinking\n", gettime() - time_now, philo->name);
+	usleep(philo->time_to_sleep);
+}
 
 // void	died(t_philo_data *philo, t_data *data)
 // {
@@ -216,6 +216,7 @@ void	philosopher(t_philo_data *philo)
 	{
 		eating(philo, time_now);
 		sleeping(philo, time_now);
+		thinking(philo, time_now);
 	}
 }
 
@@ -267,7 +268,6 @@ int	main(int argc, char *argv[])
 		pthread_join(philo[i].thread, NULL);
 	return (0);
 }
-//mettre philo[250] et passer chaque case une par une
 
 /*
 	Threads : nouveaux processus executant une fonction.
