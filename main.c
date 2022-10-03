@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/09/29 19:33:11 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/03 18:12:27 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,7 +81,7 @@ typedef struct s_philo_data
 	pthread_mutex_t	*right_fork;
 	int				is_fork_locked;
 	int				*is_right_fork_locked;
-	long long int	time_now;//not used
+	long long int	time_now;
 	long int		times_each_philo_must_eat;//not used
 	pthread_t		thread;
 }	t_philo_data;
@@ -182,7 +182,7 @@ long int	time_diff(struct timeval time_now)
 	return (diff);
 }
 //a faire
-void	take_fork(t_philo_data *philo, long long int time_now)
+void	take_fork(t_philo_data *philo)
 {
 	if (philo->is_fork_locked == 0)
 	{
@@ -192,28 +192,29 @@ void	take_fork(t_philo_data *philo, long long int time_now)
 	if (philo->is_right_fork_locked == 0)
 	{
 		pthread_mutex_lock(philo->right_fork);
-		philo->is_right_fork_locked = 1;
+		*philo->is_right_fork_locked = 1;
 	}
 }
 
 //mange un certain temps et doit garder ses fourchettes pendant ce temps
 //reset la faim
-void	eating(t_philo_data *philo, long long int time_now)
+void	eating(t_philo_data *philo)
 {
-	printf("%lld    %d is eating\n", gettime() - time_now, philo->name);
+	printf("%lld    %d is eating\n", gettime() - philo->time_now, philo->name);
 	usleep(philo->time_to_eat);
-	//mutex unlock
+	pthread_mutex_unlock(&philo->fork);
+	pthread_mutex_unlock(philo->right_fork);
 }
 
-void	sleeping(t_philo_data *philo, long long int time_now)
+void	sleeping(t_philo_data *philo)
 {
-	printf("%lld   %d is sleeping\n", gettime() - time_now, philo->name);
+	printf("%lld   %d is sleeping\n", gettime() - philo->time_now, philo->name);
 	usleep(philo->time_to_sleep);
 }
 
-void	thinking(t_philo_data *philo, long long int time_now)
+void	thinking(t_philo_data *philo)
 {
-	printf("%lld   %d is thinking\n", gettime() - time_now, philo->name);
+	printf("%lld   %d is thinking\n", gettime() - philo->time_now, philo->name);
 	usleep(philo->time_to_sleep);
 }
 
@@ -224,15 +225,13 @@ void	thinking(t_philo_data *philo, long long int time_now)
 
 void	philosopher(t_philo_data *philo)
 {
-	long long int	time_now;
-
-	time_now = gettime();
+	philo->time_now = gettime();
 	while (1)
 	{
-		take_fork(philo, time_now);
-		eating(philo, time_now);
-		sleeping(philo, time_now);
-		thinking(philo, time_now);
+		// take_fork(philo);
+		// eating(philo);
+		sleeping(philo);
+		thinking(philo);
 	}
 }
 
