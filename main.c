@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/03 21:09:46 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/05 11:34:38 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -141,6 +141,7 @@ void	init_fork(t_data *data, t_philo_data *philo, t_philo_data *philo2)
 {
 	philo->right_fork = &(philo2->fork);
 	philo->is_fork_locked = 0;
+	philo2->is_fork_locked = 0;
 	philo->is_right_fork_locked = &philo2->is_fork_locked;
 	pthread_mutex_init(&(philo->fork), NULL);
 }
@@ -192,11 +193,11 @@ void	take_fork(t_philo_data *philo)
 	
 	// segfault
 	
-	// if (*philo->is_right_fork_locked == 0)
-	// {
-	// 	pthread_mutex_lock(&(*philo->right_fork));
-	// 	*philo->is_right_fork_locked = 1;
-	// }
+	if (*philo->is_right_fork_locked == 0)
+	{
+		pthread_mutex_lock(philo->right_fork);
+		*philo->is_right_fork_locked = 1;
+	}
 }
 
 //mange un certain temps et doit garder ses fourchettes pendant ce temps
@@ -207,8 +208,9 @@ void	eating(t_philo_data *philo)
 	usleep(philo->time_to_eat);
 	pthread_mutex_unlock(&philo->fork);
 	philo->is_fork_locked = 0;
-	// pthread_mutex_unlock(&(*philo->right_fork));
-	// *(philo->is_right_fork_locked) = 0;
+	//segfault
+	pthread_mutex_unlock(philo->right_fork);
+	*philo->is_right_fork_locked = 0;
 }
 
 void	sleeping(t_philo_data *philo)
