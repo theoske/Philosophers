@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/05 13:12:07 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/05 14:20:41 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -238,7 +238,7 @@ void	philosopher(t_philo_data *philo)
 	philo->time_now = gettime();
 	while (1)
 	{
-		if (philo->is_right_fork_locked == 0)
+		if (philo->is_right_fork_locked == 0 && philo->is_fork_locked == 0)
 		{
 			take_fork(philo);
 			eating(philo);
