@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/05 14:20:41 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/05 15:05:17 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,8 +79,6 @@ typedef struct s_philo_data
 	long long		time_left;//not used
 	pthread_mutex_t	fork;
 	pthread_mutex_t	*right_fork;
-	int				is_fork_locked;
-	int				*is_right_fork_locked;
 	long long int	time_now;
 	long int		times_each_philo_must_eat;//not used
 	pthread_t		thread;
@@ -140,9 +138,6 @@ void	ft_memset(t_philo_data *philo, int nbr, long int size)
 void	init_fork(t_data *data, t_philo_data *philo, t_philo_data *philo2)
 {
 	philo->right_fork = &philo2->fork;
-	philo->is_fork_locked = 0;
-	philo2->is_fork_locked = 0;
-	philo->is_right_fork_locked = &philo2->is_fork_locked;
 	pthread_mutex_init(&(philo->fork), NULL);
 }
 
@@ -185,35 +180,29 @@ long int	time_diff(struct timeval time_now)
 //a faire
 void	take_fork(t_philo_data *philo)
 {
-	if (philo->is_fork_locked == 0)
-	{
+	if (philo->name % 2)
 		pthread_mutex_lock(&philo->fork);
-		philo->is_fork_locked = 1;
-		printf("%lld    %d has taken a fork\n", gettime() - philo->time_now, philo->name);
-	}
+	else
+		pthread_mutex_lock(philo->right_fork);
+	printf("%lld    %d has taken a fork\n", gettime() - philo->time_now, philo->name);
 	
 	// segfault peut pas prendre 2 fois la meme fourchette
-	
-	if (*philo->is_right_fork_locked == 0)
-	{
+	if (!philo->name % 2)
 		pthread_mutex_lock(philo->right_fork);
-		*philo->is_right_fork_locked = 1;
-		printf("%lld    %d has taken a fork\n", gettime() - philo->time_now, philo->name);
-	}
+	else
+		pthread_mutex_lock(&philo->fork);
+	printf("%lld    %d has taken a fork\n", gettime() - philo->time_now, philo->name);
 }
 
 //mange un certain temps et doit garder ses fourchettes pendant ce temps
 //reset la faim
 void	eating(t_philo_data *philo)
 {
+	take_fork(philo);
 	printf("%lld    %d is eating\n", gettime() - philo->time_now, philo->name);
 	usleep(philo->time_to_eat);
 	pthread_mutex_unlock(&philo->fork);
-	philo->is_fork_locked = 0;
-
-	//segfault peut pas prendre 2 fois la meme fourchette
 	pthread_mutex_unlock(philo->right_fork);
-	*philo->is_right_fork_locked = 0;
 }
 
 void	sleeping(t_philo_data *philo)
@@ -238,11 +227,7 @@ void	philosopher(t_philo_data *philo)
 	philo->time_now = gettime();
 	while (1)
 	{
-		if (philo->is_right_fork_locked == 0 && philo->is_fork_locked == 0)
-		{
-			take_fork(philo);
-			eating(philo);
-		}
+		eating(philo);
 		sleeping(philo);
 		thinking(philo);
 	}
