@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/05 11:34:38 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/05 13:12:07 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,7 +139,7 @@ void	ft_memset(t_philo_data *philo, int nbr, long int size)
 
 void	init_fork(t_data *data, t_philo_data *philo, t_philo_data *philo2)
 {
-	philo->right_fork = &(philo2->fork);
+	philo->right_fork = &philo2->fork;
 	philo->is_fork_locked = 0;
 	philo2->is_fork_locked = 0;
 	philo->is_right_fork_locked = &philo2->is_fork_locked;
@@ -189,14 +189,16 @@ void	take_fork(t_philo_data *philo)
 	{
 		pthread_mutex_lock(&philo->fork);
 		philo->is_fork_locked = 1;
+		printf("%lld    %d has taken a fork\n", gettime() - philo->time_now, philo->name);
 	}
 	
-	// segfault
+	// segfault peut pas prendre 2 fois la meme fourchette
 	
 	if (*philo->is_right_fork_locked == 0)
 	{
 		pthread_mutex_lock(philo->right_fork);
 		*philo->is_right_fork_locked = 1;
+		printf("%lld    %d has taken a fork\n", gettime() - philo->time_now, philo->name);
 	}
 }
 
@@ -208,7 +210,8 @@ void	eating(t_philo_data *philo)
 	usleep(philo->time_to_eat);
 	pthread_mutex_unlock(&philo->fork);
 	philo->is_fork_locked = 0;
-	//segfault
+
+	//segfault peut pas prendre 2 fois la meme fourchette
 	pthread_mutex_unlock(philo->right_fork);
 	*philo->is_right_fork_locked = 0;
 }
@@ -235,8 +238,11 @@ void	philosopher(t_philo_data *philo)
 	philo->time_now = gettime();
 	while (1)
 	{
-		take_fork(philo);
-		eating(philo);
+		if (philo->is_right_fork_locked == 0)
+		{
+			take_fork(philo);
+			eating(philo);
+		}
 		sleeping(philo);
 		thinking(philo);
 	}
