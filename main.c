@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/05 15:05:17 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/06 20:16:40 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,11 +135,11 @@ void	ft_memset(t_philo_data *philo, int nbr, long int size)
 		philo->times_each_philo_must_eat = (int long) nbr;
 }
 
-void	init_fork(t_data *data, t_philo_data *philo, t_philo_data *philo2)
-{
-	philo->right_fork = &philo2->fork;
-	pthread_mutex_init(&(philo->fork), NULL);
-}
+// void	init_fork(t_data *data, t_philo_data *philo, t_philo_data *philo2)
+// {
+// 	pthread_mutex_init(&(philo->fork), NULL);
+// 	philo->right_fork = &philo2->fork;
+// }
 
 long long int	gettime(void)
 {
@@ -177,21 +177,15 @@ long int	time_diff(struct timeval time_now)
 	diff = ((end.tv_sec * 1000) + (end.tv_usec / 1000)) - ((time_now.tv_sec * 1000) + (time_now.tv_usec / 1000));
 	return (diff);
 }
-//a faire
+
 void	take_fork(t_philo_data *philo)
 {
-	if (philo->name % 2)
-		pthread_mutex_lock(&philo->fork);
-	else
-		pthread_mutex_lock(philo->right_fork);
+	if (philo->name % 2 == 1)
+		usleep((philo->time_to_eat * 9) / 10);
+	pthread_mutex_lock(&philo->fork);
 	printf("%lld    %d has taken a fork\n", gettime() - philo->time_now, philo->name);
-	
-	// segfault peut pas prendre 2 fois la meme fourchette
-	if (!philo->name % 2)
-		pthread_mutex_lock(philo->right_fork);
-	else
-		pthread_mutex_lock(&philo->fork);
-	printf("%lld    %d has taken a fork\n", gettime() - philo->time_now, philo->name);
+	pthread_mutex_lock(philo->right_fork);
+	printf("%lld    %d has taken a right fork\n", gettime() - philo->time_now, philo->name);
 }
 
 //mange un certain temps et doit garder ses fourchettes pendant ce temps
@@ -214,7 +208,7 @@ void	sleeping(t_philo_data *philo)
 void	thinking(t_philo_data *philo)
 {
 	printf("%lld   %d is thinking\n", gettime() - philo->time_now, philo->name);
-	usleep(philo->time_to_sleep);
+	usleep(10);
 }
 
 // void	died(t_philo_data *philo, t_data *data)
@@ -259,7 +253,7 @@ void	philosopher(t_philo_data *philo)
 				- philos paires prennent fourchette de gauche et impairs celle de droite
 */
 
-//faire fonctionnement fourchettes
+//premier philo arrive pas a prendre fourchette dernier philo
 int	main(int argc, char *argv[])
 {
 	t_data				data;
@@ -271,10 +265,13 @@ int	main(int argc, char *argv[])
 	i = 0;
 	while (i++ < data.number_of_philo)
 		philo_init(&data, &philo[i], argc, argv);
-	init_fork(&data, &philo[0], &philo[data.number_of_philo - 1]);
+	i = 0;
+	while (i++ < data.number_of_philo)
+		pthread_mutex_init(&philo[i].fork, NULL);
 	i = 1;
 	while (i++ < data.number_of_philo)
-		init_fork(&data, &philo[i], &philo[i - 1]);
+		philo[i].right_fork = &philo[i - 1].fork;
+	philo[0].right_fork = &philo[data.number_of_philo - 1].fork;
 	i = 0;
 	while (i++ < data.number_of_philo)
 		pthread_create(&philo[i].thread, NULL, (void *)philosopher, &philo[i]);
