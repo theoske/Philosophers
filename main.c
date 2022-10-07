@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/07 16:48:02 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/07 18:08:32 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,21 +126,6 @@ int	ft_error(void)
 	return (-1);
 }
 
-void	ft_memset(t_philo_data *philo, int nbr, long int size)
-{
-	int		i;
-
-	i = 0;
-	while (i++ < size)
-		philo->times_each_philo_must_eat = (int long) nbr;
-}
-
-// void	init_fork(t_data *data, t_philo_data *philo, t_philo_data *philo2)
-// {
-// 	pthread_mutex_init(&(philo->fork), NULL);
-// 	philo->right_fork = &philo2->fork;
-// }
-
 long long int	gettime(void)
 {
 	struct timeval	t;
@@ -222,8 +207,6 @@ void	philosopher(t_philo_data *philo)
 	philo->time_now = gettime();
 	while (1)
 	{
-		// if (philo->name == 1)
-		// 	break;
 		eating(philo);
 		sleeping(philo);
 		thinking(philo);
@@ -266,27 +249,36 @@ int	main(int argc, char *argv[])
 	if (arguments_checker(argc, argv, &data) == -1)
 		return (ft_error());
 	i = 0;
-	while (i++ < data.number_of_philo)
+	while (i < data.number_of_philo)
+	{
 		philo_init(&data, &philo[i], argc, argv);
+		i++;
+	}
 	i = 0;
-	while (i++ < data.number_of_philo)
+	while (i < data.number_of_philo)
+	{
 		pthread_mutex_init(&philo[i].fork, NULL);
+		i++;
+	}
 	i = 1;
-	while (i++ < data.number_of_philo)
+	while (i < data.number_of_philo)
+	{
 		philo[i].right_fork = &philo[i - 1].fork;
-	philo[0].right_fork = &philo[data.number_of_philo - 1].fork;
-	printf ("nb philo %ld\n", data.number_of_philo - 1);
-	printf ("fourchette philo %ld\n", philo[0].right_fork);
-	printf ("fourchette droite philo    %ld\n", &philo[data.number_of_philo - 1].fork);
-	printf ("fourchette 4 philo         %ld\n", philo[0].right_fork);
-	printf ("fourchette 4 philo         %ld\n", philo[0].right_fork);
-	
+		i++;
+	}
+	philo[0].right_fork = &philo[data.number_of_philo - 1].fork;//bug
 	i = 0;
-	while (i++ < data.number_of_philo)
+	while (i < data.number_of_philo)
+	{
 		pthread_create(&philo[i].thread, NULL, (void *)philosopher, &philo[i]);
+		i++;
+	}
 	i = 0;
-	while (i++ < data.number_of_philo)
+	while (i < data.number_of_philo)
+	{
 		pthread_join(philo[i].thread, NULL);
+		i++;
+	}
 	return (0);
 }
 
