@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/06 20:16:40 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/07 16:48:02 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -195,8 +195,9 @@ void	eating(t_philo_data *philo)
 	take_fork(philo);
 	printf("%lld    %d is eating\n", gettime() - philo->time_now, philo->name);
 	usleep(philo->time_to_eat);
-	pthread_mutex_unlock(&philo->fork);
+	pthread_mutex_unlock(&philo->fork);//segfault pour dernier philo
 	pthread_mutex_unlock(philo->right_fork);
+	printf("%lld    %d is shitting\n", gettime() - philo->time_now, philo->name);
 }
 
 void	sleeping(t_philo_data *philo)
@@ -215,12 +216,14 @@ void	thinking(t_philo_data *philo)
 // {
 // 	printf("%ld   %d died\n", time_diff(&data->time_now, &data->end), philo->name);
 // }
-
+// premier philo bug
 void	philosopher(t_philo_data *philo)
 {
 	philo->time_now = gettime();
 	while (1)
 	{
+		// if (philo->name == 1)
+		// 	break;
 		eating(philo);
 		sleeping(philo);
 		thinking(philo);
@@ -272,6 +275,12 @@ int	main(int argc, char *argv[])
 	while (i++ < data.number_of_philo)
 		philo[i].right_fork = &philo[i - 1].fork;
 	philo[0].right_fork = &philo[data.number_of_philo - 1].fork;
+	printf ("nb philo %ld\n", data.number_of_philo - 1);
+	printf ("fourchette philo %ld\n", philo[0].right_fork);
+	printf ("fourchette droite philo    %ld\n", &philo[data.number_of_philo - 1].fork);
+	printf ("fourchette 4 philo         %ld\n", philo[0].right_fork);
+	printf ("fourchette 4 philo         %ld\n", philo[0].right_fork);
+	
 	i = 0;
 	while (i++ < data.number_of_philo)
 		pthread_create(&philo[i].thread, NULL, (void *)philosopher, &philo[i]);
