@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/11 15:55:08 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/11 16:37:48 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,6 +81,7 @@ typedef struct s_philo_data
 	pthread_mutex_t	*right_fork;
 	long long int	time_now;
 	long int		times_each_philo_must_eat;//not used
+	int				time_eaten;
 	pthread_t		thread;
 }	t_philo_data;
 
@@ -168,6 +169,7 @@ int	died(t_philo_data *philo)
 	static int		is_dead = 0;
 	long long int	time_no_eat;
 
+	printf("\ndied : %d\n\n", is_dead);
 	if (is_dead != 0)
 		return (-1);
 	time_no_eat = gettime() - philo->last_meal;
@@ -193,7 +195,7 @@ void	take_fork(t_philo_data *philo)
 //reset la faim
 void	eating(t_philo_data *philo)
 {
-	if (died(philo) == 0)
+	if (died(philo) == 0 || philo->time_eaten == 0)
 	{
 		take_fork(philo);
 		printf("%lld	%d is eating\n", gettime() - philo->time_now, philo->name);
@@ -201,6 +203,7 @@ void	eating(t_philo_data *philo)
 		pthread_mutex_unlock(&philo->fork);
 		pthread_mutex_unlock(philo->right_fork);
 		philo->last_meal = gettime();
+		philo->time_eaten++;
 	}
 }
 
@@ -284,7 +287,7 @@ int	main(int argc, char *argv[])
 		philo[i].right_fork = &philo[i - 1].fork;
 		i++;
 	}
-	philo[0].right_fork = &philo[data.number_of_philo - 1].fork;//bug
+	philo[0].right_fork = &philo[data.number_of_philo - 1].fork;
 	i = 0;
 	while (i < data.number_of_philo)
 	{
