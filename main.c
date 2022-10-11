@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/07 18:08:32 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/11 15:55:08 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,7 @@ typedef struct s_philo_data
 	long int		time_to_die;
 	long int		time_to_eat;
 	long int		time_to_sleep;
-	long long		time_left;//not used
+	long long		last_meal;
 	pthread_mutex_t	fork;
 	pthread_mutex_t	*right_fork;
 	long long int	time_now;
@@ -163,53 +163,71 @@ long int	time_diff(struct timeval time_now)
 	return (diff);
 }
 
+int	died(t_philo_data *philo)
+{
+	static int		is_dead = 0;
+	long long int	time_no_eat;
+
+	if (is_dead != 0)
+		return (-1);
+	time_no_eat = gettime() - philo->last_meal;
+	if (time_no_eat > philo->time_to_die)
+	{
+		printf("%lld	%d DIIIIIIEEEEED\n", gettime() - philo->time_now, philo->name);
+		is_dead++;
+		return (-1);
+	}
+	return (0);
+}
+
 void	take_fork(t_philo_data *philo)
 {
 	if (philo->name % 2 == 1)
-		usleep((philo->time_to_eat * 9) / 10);
+		usleep(philo->time_to_eat * 9 / 10);
 	pthread_mutex_lock(&philo->fork);
-	printf("%lld    %d has taken a fork\n", gettime() - philo->time_now, philo->name);
+	printf("%lld	%d has taken a fork\n", gettime() - philo->time_now, philo->name);
 	pthread_mutex_lock(philo->right_fork);
-	printf("%lld    %d has taken a right fork\n", gettime() - philo->time_now, philo->name);
+	printf("%lld	%d has taken a fork\n", gettime() - philo->time_now, philo->name);
 }
 
-//mange un certain temps et doit garder ses fourchettes pendant ce temps
 //reset la faim
 void	eating(t_philo_data *philo)
 {
-	take_fork(philo);
-	printf("%lld    %d is eating\n", gettime() - philo->time_now, philo->name);
-	usleep(philo->time_to_eat);
-	pthread_mutex_unlock(&philo->fork);//segfault pour dernier philo
-	pthread_mutex_unlock(philo->right_fork);
-	printf("%lld    %d is shitting\n", gettime() - philo->time_now, philo->name);
+	if (died(philo) == 0)
+	{
+		take_fork(philo);
+		printf("%lld	%d is eating\n", gettime() - philo->time_now, philo->name);
+		usleep(philo->time_to_eat);
+		pthread_mutex_unlock(&philo->fork);
+		pthread_mutex_unlock(philo->right_fork);
+		philo->last_meal = gettime();
+	}
 }
 
 void	sleeping(t_philo_data *philo)
 {
-	printf("%lld   %d is sleeping\n", gettime() - philo->time_now, philo->name);
+	printf("%lld	%d is sleeping\n", gettime() - philo->time_now, philo->name);
 	usleep(philo->time_to_sleep);
 }
 
 void	thinking(t_philo_data *philo)
 {
-	printf("%lld   %d is thinking\n", gettime() - philo->time_now, philo->name);
+	printf("%lld	%d is thinking\n", gettime() - philo->time_now, philo->name);
 	usleep(10);
 }
 
-// void	died(t_philo_data *philo, t_data *data)
-// {
-// 	printf("%ld   %d died\n", time_diff(&data->time_now, &data->end), philo->name);
-// }
-// premier philo bug
 void	philosopher(t_philo_data *philo)
 {
 	philo->time_now = gettime();
 	while (1)
 	{
 		eating(philo);
-		sleeping(philo);
-		thinking(philo);
+		if (died(philo) == 0)
+			sleeping(philo);
+		if (died(philo) == 0)
+			thinking(philo);
+		if (died(philo) == -1)
+			break;
 	}
 }
 
