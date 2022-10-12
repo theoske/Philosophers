@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/11 16:37:48 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/12 15:41:05 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,20 +68,19 @@ typedef struct s_data
 	long int		initial_time_to_die;
 	long int		initial_time_to_eat;
 	long int		initial_time_to_sleep;
+	int				is_dead;
 }	t_data;
 
 typedef struct s_philo_data
 {
 	int				name;
-	long int		time_to_die;
-	long int		time_to_eat;
-	long int		time_to_sleep;
 	long long		last_meal;
 	pthread_mutex_t	fork;
 	pthread_mutex_t	*right_fork;
 	long long int	time_now;
 	long int		times_each_philo_must_eat;//not used
 	int				time_eaten;
+	t_data			*data;
 	pthread_t		thread;
 }	t_philo_data;
 
@@ -118,6 +117,7 @@ int	arguments_checker(int argc, char *argv[], t_data *data)
 	data->initial_time_to_die = ft_atoi(argv[2]);
 	data->initial_time_to_eat = ft_atoi(argv[3]);
 	data->initial_time_to_sleep = ft_atoi(argv[4]);
+	data->is_dead = 0;
 	return (0);
 }
 
@@ -143,15 +143,15 @@ void	philo_init(t_data *data, t_philo_data *philo, int argc, char **argv)
 	static int	i = 0;
 
 	philo->name = i + 1;
-	philo->time_to_die = data->initial_time_to_die * 1000;
-	philo->time_to_eat = data->initial_time_to_eat * 1000;
-	philo->time_to_sleep = data->initial_time_to_sleep * 1000;
 	philo->time_now = gettime() * 1000;
 	if (argc == 6)
 		philo->times_each_philo_must_eat = ft_atoi(argv[5]);
 	else
 		philo->times_each_philo_must_eat = -1;
 	i++;
+	philo->data = data;
+	philo->time_eaten = 0;
+	philo->last_meal = 0;
 }
 
 long int	time_diff(struct timeval time_now)
@@ -163,20 +163,19 @@ long int	time_diff(struct timeval time_now)
 	diff = ((end.tv_sec * 1000) + (end.tv_usec / 1000)) - ((time_now.tv_sec * 1000) + (time_now.tv_usec / 1000));
 	return (diff);
 }
-
+//plusieurs philos meurent en meme tmps
+//meurent meme sans pb
 int	died(t_philo_data *philo)
 {
-	static int		is_dead = 0;
 	long long int	time_no_eat;
 
-	printf("\ndied : %d\n\n", is_dead);
-	if (is_dead != 0)
+	if (philo->data->is_dead != 0)
 		return (-1);
 	time_no_eat = gettime() - philo->last_meal;
-	if (time_no_eat > philo->time_to_die)
+	if (time_no_eat > philo->data->initial_time_to_die && philo->last_meal > 0)
 	{
-		printf("%lld	%d DIIIIIIEEEEED\n", gettime() - philo->time_now, philo->name);
-		is_dead++;
+		printf("%lld	%d died.\n", gettime() - philo->time_now, philo->name);
+		philo->data->is_dead++;
 		return (-1);
 	}
 	return (0);
@@ -185,21 +184,23 @@ int	died(t_philo_data *philo)
 void	take_fork(t_philo_data *philo)
 {
 	if (philo->name % 2 == 1)
-		usleep(philo->time_to_eat * 9 / 10);
-	pthread_mutex_lock(&philo->fork);
-	printf("%lld	%d has taken a fork\n", gettime() - philo->time_now, philo->name);
-	pthread_mutex_lock(philo->right_fork);
-	printf("%lld	%d has taken a fork\n", gettime() - philo->time_now, philo->name);
+		usleep(philo->data->initial_time_to_eat * 9 / 10);
+	if (died(philo) == 0)
+	{
+		pthread_mutex_lock(&philo->fork);
+		printf("%lld	%d has taken a fork.\n", gettime() - philo->time_now, philo->name);
+		pthread_mutex_lock(philo->right_fork);
+		printf("%lld	%d has taken a fork.\n", gettime() - philo->time_now, philo->name);
+	}
 }
 
-//reset la faim
 void	eating(t_philo_data *philo)
 {
-	if (died(philo) == 0 || philo->time_eaten == 0)
+	take_fork(philo);
+	if (died(philo) == 0)
 	{
-		take_fork(philo);
-		printf("%lld	%d is eating\n", gettime() - philo->time_now, philo->name);
-		usleep(philo->time_to_eat);
+		printf("%lld	%d is eating.\n", gettime() - philo->time_now, philo->name);
+		usleep(philo->data->initial_time_to_eat);
 		pthread_mutex_unlock(&philo->fork);
 		pthread_mutex_unlock(philo->right_fork);
 		philo->last_meal = gettime();
@@ -209,20 +210,20 @@ void	eating(t_philo_data *philo)
 
 void	sleeping(t_philo_data *philo)
 {
-	printf("%lld	%d is sleeping\n", gettime() - philo->time_now, philo->name);
-	usleep(philo->time_to_sleep);
+	printf("%lld	%d is sleeping.\n", gettime() - philo->time_now, philo->name);
+	usleep(philo->data->initial_time_to_sleep);
 }
 
 void	thinking(t_philo_data *philo)
 {
-	printf("%lld	%d is thinking\n", gettime() - philo->time_now, philo->name);
+	printf("%lld	%d is thinking.\n", gettime() - philo->time_now, philo->name);
 	usleep(10);
 }
 
 void	philosopher(t_philo_data *philo)
 {
 	philo->time_now = gettime();
-	while (1)
+	while (philo->time_eaten != philo->times_each_philo_must_eat)
 	{
 		eating(philo);
 		if (died(philo) == 0)
@@ -235,7 +236,7 @@ void	philosopher(t_philo_data *philo)
 }
 
 // take in account time to die/eat/sleep
-// number_of_philos		time_to_die 	time_to_eat		time_to_sleep	[times_each_philo_must_eat]
+// number_of_philos		data->initial_time_to_die 	data->initial_time_to_eat		data->initial_time_to_sleep	[times_each_philo_must_eat]
 
 /*
 	chaque fourchette doit etre representee par une valeur dans un tableau.
