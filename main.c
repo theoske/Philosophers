@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/13 18:02:52 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/13 18:03:58 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -208,7 +208,8 @@ void	take_fork(t_philo_data *philo)
 {
 	if (philo->time_to_die < philo->time_to_eat && philo->name % 2 == 1)
 	{
-		
+		//usleep(die)
+		//died
 	}
 	else if (philo->name % 2 == 1)
 		usleep(philo->time_to_eat * 9 / 10);//lag a cause de ca quand ttd < tte
