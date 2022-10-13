@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/13 14:53:57 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/13 15:46:35 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -171,24 +171,22 @@ void	philo_init(t_data *data, t_philo_data *philo, int argc, char **argv)
 void	talking(t_philo_data *philo, int option)
 {
 	pthread_mutex_lock(&philo->data->talk);
-	if (option == 0)
+	if (option == 0 && philo->data->is_dead == 0)
 		printf("%lld	%d has taken a fork.\n", gettime() - philo->time_now, philo->name);
-	else if (option == 1)
+	else if (option == 1 && philo->data->is_dead == 0)
 		printf("%lld	%d is eating.\n", gettime() - philo->time_now, philo->name);
-	else if (option == 2)
+	else if (option == 2 && philo->data->is_dead == 0)
 		printf("%lld	%d is sleeping.\n", gettime() - philo->time_now, philo->name);
-	else if (option == 3)
+	else if (option == 3 && philo->data->is_dead == 0)
 		printf("%lld	%d is thinking.\n", gettime() - philo->time_now, philo->name);
-	else if (option == 4 && philo->data->is_dead == 0)
+	else if (option == 4 && philo->data->is_dead <= 0)
 	{
 		printf("%lld	%d died.\n", gettime() - philo->time_now, philo->name);
-		philo->data->is_dead++;
+		philo->data->is_dead = 1;
 	}
 	pthread_mutex_unlock(&philo->data->talk);
 }
 
-//plusieurs philos meurent en meme tmps
-//meurent meme sans pb
 int	died(t_philo_data *philo)
 {
 	long long int	time_no_eat;
@@ -198,6 +196,7 @@ int	died(t_philo_data *philo)
 	time_no_eat = gettime() - philo->last_meal;
 	if (time_no_eat > philo->time_to_die)
 	{
+		philo->data->is_dead = -1;
 		talking(philo, 4);
 		return (-1);
 	}
