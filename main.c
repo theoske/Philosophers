@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/12 17:32:56 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/13 14:49:44 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,6 +69,8 @@ typedef struct s_data
 	long long int	initial_time_to_eat;
 	long long int	initial_time_to_sleep;
 	int				is_dead;
+	pthread_mutex_t	talk;// a init
+
 }	t_data;
 
 typedef struct s_philo_data
@@ -77,7 +79,7 @@ typedef struct s_philo_data
 	long long int	last_meal;
 	long long int	time_to_die;
 	long long int	time_to_eat;
-	long long int	time_to_sleep;//remplacer par eux
+	long long int	time_to_sleep;
 	pthread_mutex_t	fork;
 	pthread_mutex_t	*right_fork;
 	long long int	time_now;
@@ -121,6 +123,7 @@ int	arguments_checker(int argc, char *argv[], t_data *data)
 	data->initial_time_to_eat = ft_atoi(argv[3]);
 	data->initial_time_to_sleep = ft_atoi(argv[4]);
 	data->is_dead = 0;
+	pthread_mutex_init(&data->talk, NULL);
 	return (0);
 }
 
@@ -136,7 +139,7 @@ long long int	gettime(void)
 	long long int	time;
 
 	gettimeofday(&t, NULL);
-	time = t.tv_sec * 1000000 + t.tv_usec;
+	time = (t.tv_sec) * 1000 + (t.tv_usec) / 1000;
 	return (time);
 }
 
@@ -146,8 +149,8 @@ void	philo_init(t_data *data, t_philo_data *philo, int argc, char **argv)
 
 	philo->name = i + 1;
 	philo->time_to_die = data->initial_time_to_die;
-	philo->time_to_eat = data->initial_time_to_eat;
-	philo->time_to_sleep = data->initial_time_to_sleep;
+	philo->time_to_eat = data->initial_time_to_eat * 1000;
+	philo->time_to_sleep = data->initial_time_to_sleep * 1000;
 	if (argc == 6)
 		philo->times_each_philo_must_eat = ft_atoi(argv[5]);
 	else
@@ -156,6 +159,32 @@ void	philo_init(t_data *data, t_philo_data *philo, int argc, char **argv)
 	philo->data = data;
 	philo->time_eaten = 0;
 	philo->last_meal = gettime();
+}
+
+/*
+0 : take fork
+1 : eat
+2 : sleep
+3 : think
+4 : died
+*/
+void	talking(t_philo_data *philo, int option)
+{
+	pthread_mutex_lock(&philo->data->talk);
+	if (option == 0)
+		printf("%lld	%d has taken a fork.\n", gettime() - philo->time_now, philo->name);
+	else if (option == 1)
+		printf("%lld	%d is eating.\n", gettime() - philo->time_now, philo->name);
+	else if (option == 2)
+		printf("%lld	%d is sleeping.\n", gettime() - philo->time_now, philo->name);
+	else if (option == 3)
+		printf("%lld	%d is thinking.\n", gettime() - philo->time_now, philo->name);
+	else if (option == 4 && philo->data->is_dead == 0)
+	{
+		printf("%lld	%d died.\n", gettime() - philo->time_now, philo->name);
+		philo->data->is_dead++;
+	}
+	pthread_mutex_unlock(&philo->data->talk);
 }
 
 //plusieurs philos meurent en meme tmps
@@ -169,11 +198,10 @@ int	died(t_philo_data *philo)
 	time_no_eat = gettime() - philo->last_meal;
 	if (time_no_eat > philo->time_to_die)
 	{
-		printf("%lld	%d died.\n", gettime() - philo->time_now, philo->name);
-		philo->data->is_dead = 1;
+		talking(philo, 4);
 		return (-1);
 	}
-	printf("name : %d   last meal : %lld   ttd : %lld   time_no_eat : %lld\n",philo->name, philo->last_meal, philo->time_to_die, time_no_eat);
+	// printf("name : %d   last meal : %lld   ttd : %lld   time_no_eat : %lld\n",philo->name, philo->last_meal, philo->time_to_die, time_no_eat);
 	return (0);
 }
 
@@ -184,9 +212,9 @@ void	take_fork(t_philo_data *philo)
 	if (died(philo) == 0)
 	{
 		pthread_mutex_lock(&philo->fork);
-		// printf("%lld	%d has taken a fork.\n", gettime() - philo->time_now, philo->name);
+		talking(philo, 0);
 		pthread_mutex_lock(philo->right_fork);
-		// printf("%lld	%d has taken a fork.\n", gettime() - philo->time_now, philo->name);
+		talking(philo, 0);
 	}
 }
 
@@ -194,25 +222,23 @@ void	eating(t_philo_data *philo)
 {
 	take_fork(philo);
 	if (died(philo) == 0)
-	{
-		// printf("%lld	%d is eating.\n", gettime() - philo->time_now, philo->name);
-		usleep(philo->time_to_eat);
-		pthread_mutex_unlock(&philo->fork);
-		pthread_mutex_unlock(philo->right_fork);
-		philo->last_meal = gettime();
-		philo->time_eaten++;
-	}
+		talking(philo, 1);
+	usleep(philo->time_to_eat);
+	pthread_mutex_unlock(&philo->fork);
+	pthread_mutex_unlock(philo->right_fork);
+	philo->last_meal = gettime();
+	philo->time_eaten++;
 }
 
 void	sleeping(t_philo_data *philo)
 {
-	// printf("%lld	%d is sleeping.\n", gettime() - philo->time_now, philo->name);
+	talking(philo, 2);
 	usleep(philo->time_to_sleep);
 }
 
 void	thinking(t_philo_data *philo)
 {
-	// printf("%lld	%d is thinking.\n", gettime() - philo->time_now, philo->name);
+	talking(philo, 3);
 	usleep(10);
 }
 
