@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/13 14:49:44 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/13 14:53:57 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -208,7 +208,7 @@ int	died(t_philo_data *philo)
 void	take_fork(t_philo_data *philo)
 {
 	if (philo->name % 2 == 1)
-		usleep(philo->time_to_eat * 9 / 10);
+		usleep(philo->time_to_eat * 9 / 10);//lag a cause de ca quand ttd < tte
 	if (died(philo) == 0)
 	{
 		pthread_mutex_lock(&philo->fork);
@@ -239,7 +239,6 @@ void	sleeping(t_philo_data *philo)
 void	thinking(t_philo_data *philo)
 {
 	talking(philo, 3);
-	usleep(10);
 }
 
 void	philosopher(t_philo_data *philo)
