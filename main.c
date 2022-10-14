@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/14 16:43:54 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/14 17:01:00 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -242,7 +242,10 @@ void	eating(t_philo_data *philo)
 void	sleeping(t_philo_data *philo)
 {
 	talking(philo, 2);
-	usleep(philo->time_to_sleep);
+	if (philo->data->initial_time_to_sleep > philo->data->initial_time_to_die)
+		usleep(philo->time_to_die * 1000);
+	else
+		usleep(philo->time_to_sleep);
 }
 
 void	thinking(t_philo_data *philo)
