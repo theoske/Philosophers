@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/13 18:03:58 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/14 16:06:16 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,7 +179,7 @@ void	talking(t_philo_data *philo, int option)
 		printf("%lld	%d is sleeping.\n", gettime() - philo->time_now, philo->name);
 	else if (option == 3 && philo->data->is_dead == 0)
 		printf("%lld	%d is thinking.\n", gettime() - philo->time_now, philo->name);
-	else if (option == 4 && philo->data->is_dead <= 0)
+	else if (option == 4 && philo->data->is_dead != 0)
 	{
 		printf("%lld	%d died.\n", gettime() - philo->time_now, philo->name);
 		philo->data->is_dead = 1;
@@ -187,32 +187,35 @@ void	talking(t_philo_data *philo, int option)
 	pthread_mutex_unlock(&philo->data->talk);
 }
 
-int	died(t_philo_data *philo)
+int	died(t_philo_data *philo)//rentre dedans avec retard
 {
 	long long int	time_no_eat;
 
 	if (philo->data->is_dead != 0)
 		return (-1);
 	time_no_eat = gettime() - philo->last_meal;
+	// printf("name %d  timenoeat %lld\n", philo->name, time_no_eat);
 	if (time_no_eat > philo->time_to_die)
 	{
 		philo->data->is_dead = -1;
 		talking(philo, 4);
 		return (-1);
 	}
-	// printf("name : %d   last meal : %lld   ttd : %lld   time_no_eat : %lld\n",philo->name, philo->last_meal, philo->time_to_die, time_no_eat);
 	return (0);
 }
 
 void	take_fork(t_philo_data *philo)
 {
-	if (philo->time_to_die < philo->time_to_eat && philo->name % 2 == 1)
+	if (philo->name % 2 == 1)
 	{
-		//usleep(die)
-		//died
+		if (philo->time_to_die < philo->time_to_eat)
+			{
+				usleep(philo->time_to_die * 1000);
+				died(philo);
+			}
+		else
+			usleep(philo->time_to_eat * 9 / 10);//lag a cause de ca quand ttd < tte
 	}
-	else if (philo->name % 2 == 1)
-		usleep(philo->time_to_eat * 9 / 10);//lag a cause de ca quand ttd < tte
 	if (died(philo) == 0)
 	{
 		pthread_mutex_lock(&philo->fork);
@@ -255,7 +258,7 @@ void	philosopher(t_philo_data *philo)
 			sleeping(philo);
 		if (died(philo) == 0)
 			thinking(philo);
-		if (died(philo) == -1)
+		if (died(philo) != 0)
 			break;
 	}
 }
