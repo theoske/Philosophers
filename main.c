@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/14 16:06:16 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/14 16:43:54 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,11 +194,13 @@ int	died(t_philo_data *philo)//rentre dedans avec retard
 	if (philo->data->is_dead != 0)
 		return (-1);
 	time_no_eat = gettime() - philo->last_meal;
-	// printf("name %d  timenoeat %lld\n", philo->name, time_no_eat);
 	if (time_no_eat > philo->time_to_die)
 	{
-		philo->data->is_dead = -1;
-		talking(philo, 4);
+		pthread_mutex_lock(&philo->data->talk);
+		philo->data->is_dead--;
+		if (philo->data->is_dead == -1)
+			printf("%lld	%d died.\n", gettime() - philo->time_now, philo->name);
+		pthread_mutex_unlock(&philo->data->talk);
 		return (-1);
 	}
 	return (0);
@@ -208,13 +210,13 @@ void	take_fork(t_philo_data *philo)
 {
 	if (philo->name % 2 == 1)
 	{
-		if (philo->time_to_die < philo->time_to_eat)
+		if (philo->data->initial_time_to_die < philo->data->initial_time_to_eat)
 			{
 				usleep(philo->time_to_die * 1000);
 				died(philo);
 			}
 		else
-			usleep(philo->time_to_eat * 9 / 10);//lag a cause de ca quand ttd < tte
+			usleep(philo->time_to_eat * 9 / 10);
 	}
 	if (died(philo) == 0)
 	{
