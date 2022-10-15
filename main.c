@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/15 15:27:56 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/15 17:38:10 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,14 @@ void	philosopher(t_philo_data *philo)
 	}
 }
 
+/*
+1 800 200 200 not eat and should die
+5 800 200 200 no die
+5 800 200 200 7 no die stop after 7 eat
+4 410 200 200 no die
+4 310 200 100 one should die
+2 philo to check times -> no delay above 10
+*/
 int	main(int argc, char *argv[])
 {
 	t_data				data;
