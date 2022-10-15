@@ -6,131 +6,11 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/15 14:54:12 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/15 15:27:56 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/time.h>
-#include <pthread.h>
-#include <string.h>
-
-// eat -> sleep -> think		#SigmaPhilosopherGrindset
-// 1 fork per philo
-
-int	ft_finder(const char *nptr)
-{
-	int		i;
-
-	i = 0;
-	while (nptr[i] == ' ' || nptr[i] == '\t' || nptr[i] == '\n'
-		|| nptr[i] == '\v' || nptr[i] == '\f' || nptr[i] == '\r')
-		i++;
-	if (nptr[i] == '+')
-		i++;
-	return (i);
-}
-
-int	ft_atoi(const char *nptr)
-{
-	int			i;
-	int			j;
-	int			neg;
-	long int	nb;
-
-	neg = 1;
-	i = ft_finder(nptr);
-	nb = 0;
-	if (nptr[i] == '-' && nptr[i - 1] != '+')
-	{
-		neg = -1;
-		i++;
-	}
-	j = i;
-	while (nptr[i] >= 48 && nptr[i] <= 57)
-	{
-		nb *= 10;
-		nb += (nptr[i] - 48);
-		i++;
-	}
-	if (i - j > 10 && neg == 1)
-		return (-1);
-	if (i - j > 10)
-		return (0);
-	return (nb * neg);
-}
-
-typedef struct s_data
-{
-	long long int	number_of_philo;
-	long long int	initial_time_to_die;
-	long long int	initial_time_to_eat;
-	long long int	initial_time_to_sleep;
-	int				is_dead;
-	pthread_mutex_t	talk;
-}	t_data;
-
-typedef struct s_philo_data
-{
-	int				name;
-	long long int	last_meal;
-	long long int	time_to_die;
-	long long int	time_to_eat;
-	long long int	time_to_sleep;
-	pthread_mutex_t	fork;
-	pthread_mutex_t	*right_fork;
-	long long int	time_now;
-	int				times_each_philo_must_eat;
-	int				time_eaten;
-	t_data			*data;
-	pthread_t		thread;
-}	t_philo_data;
-
-int	number_checker(char *argv[])
-{
-	int		i;
-	int		j;
-
-	i = 1;
-	while (argv && argv[i])
-	{
-		j = 0;
-		while (argv[i][j])
-		{
-			if (argv[i][j] < '0' || argv[i][j] > '9')
-				return (-1);
-			j++;
-		}
-		i++;
-	}
-	return (0);
-}
-
-/*
-	Checking if arguments are numbers.
-	Checking if there is a valid number of arguments (4 or 5).
-	Converting them from char* to int.
-*/
-int	arguments_checker(int argc, char *argv[], t_data *data)
-{
-	if (number_checker(argv) == -1 || argc < 5 || argc > 6)
-		return (-1);
-	data->number_of_philo = ft_atoi(argv[1]);
-	data->initial_time_to_die = ft_atoi(argv[2]);
-	data->initial_time_to_eat = ft_atoi(argv[3]);
-	data->initial_time_to_sleep = ft_atoi(argv[4]);
-	data->is_dead = 0;
-	pthread_mutex_init(&data->talk, NULL);
-	return (0);
-}
-
-int	ft_error(void)
-{
-	printf("Arguments Error\n");
-	return (-1);
-}
+#include "philo.h"
 
 long long int	gettime(void)
 {
@@ -160,98 +40,6 @@ void	philo_init(t_data *data, t_philo_data *philo, int argc, char **argv)
 	philo->last_meal = gettime();
 }
 
-/*
-options :
-	0 : take fork
-	1 : eat
-	2 : sleep
-	3 : think
-*/
-void	talking(t_philo_data *philo, int option)
-{
-	pthread_mutex_lock(&philo->data->talk);
-	if (option == 0 && philo->data->is_dead == 0)
-		printf("%lld	%d has taken a fork.\n",
-			gettime() - philo->time_now, philo->name);
-	else if (option == 1 && philo->data->is_dead == 0)
-		printf("%lld	%d is eating.\n",
-			gettime() - philo->time_now, philo->name);
-	else if (option == 2 && philo->data->is_dead == 0)
-		printf("%lld	%d is sleeping.\n",
-			gettime() - philo->time_now, philo->name);
-	else if (option == 3 && philo->data->is_dead == 0)
-		printf("%lld	%d is thinking.\n",
-			gettime() - philo->time_now, philo->name);
-	pthread_mutex_unlock(&philo->data->talk);
-}
-
-int	died(t_philo_data *philo)
-{
-	long long int	time_no_eat;
-
-	if (philo->data->is_dead != 0)
-		return (-1);
-	time_no_eat = gettime() - philo->last_meal;
-	if (time_no_eat > philo->time_to_die)
-	{
-		pthread_mutex_lock(&philo->data->talk);
-		philo->data->is_dead--;
-		if (philo->data->is_dead == -1)
-			printf("%lld	%d died.\n",
-				gettime() - philo->time_now, philo->name);
-		pthread_mutex_unlock(&philo->data->talk);
-		return (-1);
-	}
-	return (0);
-}
-
-void	take_fork(t_philo_data *philo)
-{
-	if (philo->name % 2 == 1)
-	{
-		if (philo->data->initial_time_to_die < philo->data->initial_time_to_eat)
-		{
-			usleep(philo->time_to_die * 1000);
-			died(philo);
-		}
-		else
-			usleep(philo->time_to_eat * 9 / 10);
-	}
-	if (died(philo) == 0)
-	{
-		pthread_mutex_lock(&philo->fork);
-		talking(philo, 0);
-		pthread_mutex_lock(philo->right_fork);
-		talking(philo, 0);
-	}
-}
-
-void	eating(t_philo_data *philo)
-{
-	take_fork(philo);
-	if (died(philo) == 0)
-		talking(philo, 1);
-	usleep(philo->time_to_eat);
-	pthread_mutex_unlock(&philo->fork);
-	pthread_mutex_unlock(philo->right_fork);
-	philo->last_meal = gettime();
-	philo->time_eaten++;
-}
-
-void	sleeping(t_philo_data *philo)
-{
-	talking(philo, 2);
-	if (philo->data->initial_time_to_sleep > philo->data->initial_time_to_die)
-		usleep(philo->time_to_die * 1000);
-	else
-		usleep(philo->time_to_sleep);
-}
-
-void	thinking(t_philo_data *philo)
-{
-	talking(philo, 3);
-}
-
 void	philosopher(t_philo_data *philo)
 {
 	philo->time_now = gettime();
@@ -263,7 +51,7 @@ void	philosopher(t_philo_data *philo)
 			if (died(philo) == 0)
 				sleeping(philo);
 			if (died(philo) == 0)
-				thinking(philo);
+				talking(philo, 3);
 			if (died(philo) != 0)
 				break ;
 		}
