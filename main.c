@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/14 17:01:00 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/15 14:24:27 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -259,12 +259,15 @@ void	philosopher(t_philo_data *philo)
 	while (philo->time_eaten != philo->times_each_philo_must_eat)
 	{
 		eating(philo);
-		if (died(philo) == 0)
-			sleeping(philo);
-		if (died(philo) == 0)
-			thinking(philo);
-		if (died(philo) != 0)
-			break;
+		if (philo->time_eaten != philo->times_each_philo_must_eat)
+		{
+			if (died(philo) == 0)
+				sleeping(philo);
+			if (died(philo) == 0)
+				thinking(philo);
+			if (died(philo) != 0)
+				break;
+		}
 	}
 }
 
