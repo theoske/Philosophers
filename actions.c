@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/15 15:06:01 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/15 15:15:09 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/15 21:45:19 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ int	died(t_philo_data *philo)
 
 void	take_fork(t_philo_data *philo)
 {
-	if (philo->name % 2 == 1)
+	if (philo->name % 2 == 1 && philo->time_eaten == 0)
 	{
 		if (philo->data->initial_time_to_die < philo->data->initial_time_to_eat)
 		{
@@ -83,11 +83,11 @@ void	eating(t_philo_data *philo)
 	take_fork(philo);
 	if (died(philo) == 0)
 		talking(philo, 1);
+	philo->last_meal = gettime();
 	usleep(philo->time_to_eat);
+	philo->time_eaten++;
 	pthread_mutex_unlock(&philo->fork);
 	pthread_mutex_unlock(philo->right_fork);
-	philo->last_meal = gettime();
-	philo->time_eaten++;
 }
 
 void	sleeping(t_philo_data *philo)

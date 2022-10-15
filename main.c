@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/15 17:38:10 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/15 21:51:21 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,20 +40,34 @@ void	philo_init(t_data *data, t_philo_data *philo, int argc, char **argv)
 	philo->last_meal = gettime();
 }
 
+void	one_philo(t_philo_data *philo)
+{
+	pthread_mutex_lock(&philo->fork);
+	talking(philo, 0);
+	usleep(philo->time_to_die * 1000);
+	died(philo);
+	pthread_mutex_unlock(&philo->fork);
+}
+
 void	philosopher(t_philo_data *philo)
 {
 	philo->time_now = gettime();
-	while (philo->time_eaten != philo->times_each_philo_must_eat)
+	if (philo->data->number_of_philo == 1)
+		one_philo(philo);
+	else
 	{
-		eating(philo);
-		if (philo->time_eaten != philo->times_each_philo_must_eat)
+		while (philo->time_eaten != philo->times_each_philo_must_eat)
 		{
-			if (died(philo) == 0)
-				sleeping(philo);
-			if (died(philo) == 0)
-				talking(philo, 3);
-			if (died(philo) != 0)
-				break ;
+			eating(philo);
+			if (philo->time_eaten != philo->times_each_philo_must_eat)
+			{
+				if (died(philo) == 0)
+					sleeping(philo);
+				if (died(philo) == 0)
+					talking(philo, 3);
+				if (died(philo) != 0)
+					break ;
+			}
 		}
 	}
 }
