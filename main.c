@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/15 14:24:27 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/15 14:54:12 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,8 +69,7 @@ typedef struct s_data
 	long long int	initial_time_to_eat;
 	long long int	initial_time_to_sleep;
 	int				is_dead;
-	pthread_mutex_t	talk;// a init
-
+	pthread_mutex_t	talk;
 }	t_data;
 
 typedef struct s_philo_data
@@ -162,32 +161,31 @@ void	philo_init(t_data *data, t_philo_data *philo, int argc, char **argv)
 }
 
 /*
-0 : take fork
-1 : eat
-2 : sleep
-3 : think
-4 : died
+options :
+	0 : take fork
+	1 : eat
+	2 : sleep
+	3 : think
 */
 void	talking(t_philo_data *philo, int option)
 {
 	pthread_mutex_lock(&philo->data->talk);
 	if (option == 0 && philo->data->is_dead == 0)
-		printf("%lld	%d has taken a fork.\n", gettime() - philo->time_now, philo->name);
+		printf("%lld	%d has taken a fork.\n",
+			gettime() - philo->time_now, philo->name);
 	else if (option == 1 && philo->data->is_dead == 0)
-		printf("%lld	%d is eating.\n", gettime() - philo->time_now, philo->name);
+		printf("%lld	%d is eating.\n",
+			gettime() - philo->time_now, philo->name);
 	else if (option == 2 && philo->data->is_dead == 0)
-		printf("%lld	%d is sleeping.\n", gettime() - philo->time_now, philo->name);
+		printf("%lld	%d is sleeping.\n",
+			gettime() - philo->time_now, philo->name);
 	else if (option == 3 && philo->data->is_dead == 0)
-		printf("%lld	%d is thinking.\n", gettime() - philo->time_now, philo->name);
-	else if (option == 4 && philo->data->is_dead != 0)
-	{
-		printf("%lld	%d died.\n", gettime() - philo->time_now, philo->name);
-		philo->data->is_dead = 1;
-	}
+		printf("%lld	%d is thinking.\n",
+			gettime() - philo->time_now, philo->name);
 	pthread_mutex_unlock(&philo->data->talk);
 }
 
-int	died(t_philo_data *philo)//rentre dedans avec retard
+int	died(t_philo_data *philo)
 {
 	long long int	time_no_eat;
 
@@ -199,7 +197,8 @@ int	died(t_philo_data *philo)//rentre dedans avec retard
 		pthread_mutex_lock(&philo->data->talk);
 		philo->data->is_dead--;
 		if (philo->data->is_dead == -1)
-			printf("%lld	%d died.\n", gettime() - philo->time_now, philo->name);
+			printf("%lld	%d died.\n",
+				gettime() - philo->time_now, philo->name);
 		pthread_mutex_unlock(&philo->data->talk);
 		return (-1);
 	}
@@ -211,10 +210,10 @@ void	take_fork(t_philo_data *philo)
 	if (philo->name % 2 == 1)
 	{
 		if (philo->data->initial_time_to_die < philo->data->initial_time_to_eat)
-			{
-				usleep(philo->time_to_die * 1000);
-				died(philo);
-			}
+		{
+			usleep(philo->time_to_die * 1000);
+			died(philo);
+		}
 		else
 			usleep(philo->time_to_eat * 9 / 10);
 	}
@@ -266,38 +265,11 @@ void	philosopher(t_philo_data *philo)
 			if (died(philo) == 0)
 				thinking(philo);
 			if (died(philo) != 0)
-				break;
+				break ;
 		}
 	}
 }
 
-// take in account time to die/eat/sleep
-// number_of_philos		data->initial_time_to_die 	data->initial_time_to_eat		data->initial_time_to_sleep	[times_each_philo_must_eat]
-
-/*
-	chaque fourchette doit etre representee par une valeur dans un tableau.
-	avec un 1 si elle est disponible ou 0 si elle est prise.
-	
-	while (TRUE)
-	{
-		wait(fork[i])
-		wait(fork[(i + 1) % nbre de philo])
-		
-		*eat*
-		signal(fork[i])
-		signal(fork[(i + 1) % nbre de philo])
-		*sleep*
-		*think*
-	}
-	personne ne mange en meme temps mais deadlock qui bloque le programme
-
-	Solutions :
-				- /!\ un philosophe commence sans fourchette  /!\ tester celle là
-				- les philosophes ne peuvent prendre une fourchette que si elle est libre
-				- philos paires prennent fourchette de gauche et impairs celle de droite
-*/
-
-//premier philo arrive pas a prendre fourchette dernier philo
 int	main(int argc, char *argv[])
 {
 	t_data				data;
@@ -306,42 +278,21 @@ int	main(int argc, char *argv[])
 
 	if (arguments_checker(argc, argv, &data) == -1)
 		return (ft_error());
-	i = 0;
-	while (i < data.number_of_philo)
-	{
+	i = -1;
+	while (++i < data.number_of_philo)
 		philo_init(&data, &philo[i], argc, argv);
-		i++;
-	}
-	i = 0;
-	while (i < data.number_of_philo)
-	{
+	i = -1;
+	while (++i < data.number_of_philo)
 		pthread_mutex_init(&philo[i].fork, NULL);
-		i++;
-	}
-	i = 1;
-	while (i < data.number_of_philo)
-	{
+	i = 0;
+	while (++i < data.number_of_philo)
 		philo[i].right_fork = &philo[i - 1].fork;
-		i++;
-	}
 	philo[0].right_fork = &philo[data.number_of_philo - 1].fork;
-	i = 0;
-	while (i < data.number_of_philo)
-	{
+	i = -1;
+	while (++i < data.number_of_philo)
 		pthread_create(&philo[i].thread, NULL, (void *)philosopher, &philo[i]);
-		i++;
-	}
-	i = 0;
-	while (i < data.number_of_philo)
-	{
+	i = -1;
+	while (++i < data.number_of_philo)
 		pthread_join(philo[i].thread, NULL);
-		i++;
-	}
 	return (0);
 }
-
-/*
-	Threads : nouveaux processus executant une fonction.
-pthread_join est un point ou les threads s'attendent.
-	Mutex : mutex_lock et mutex_unlock placent une zone qui ne peut etre lu que par un thread a la fois.
-*/
