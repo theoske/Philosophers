@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/15 21:57:17 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/15 22:17:15 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ void	philosopher(t_philo_data *philo)
 					sleeping(philo);
 				if (died(philo) == 0)
 					talking(philo, 3);
-				if (died(philo) != 0)
+				if (philo->data->is_dead != 0)
 					break ;
 			}
 		}
