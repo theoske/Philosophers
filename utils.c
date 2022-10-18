@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/15 14:55:50 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/15 15:15:12 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/18 13:27:29 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,7 @@ int	arguments_checker(int argc, char *argv[], t_data *data)
 	if (number_checker(argv) == -1 || argc < 5 || argc > 6)
 		return (-1);
 	data->number_of_philo = ft_atoi(argv[1]);
-	data->initial_time_to_die = ft_atoi(argv[2]);
+	data->initial_time_to_die = ft_atoi(argv[2]) + 1;
 	data->initial_time_to_eat = ft_atoi(argv[3]);
 	data->initial_time_to_sleep = ft_atoi(argv[4]);
 	data->is_dead = 0;
