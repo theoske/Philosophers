@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/15 15:06:01 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/18 13:34:28 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/18 13:53:58 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,8 +36,8 @@ void	talking(t_philo_data *philo, int option)
 		else if (option == 3)
 			printf("%lld	%d is thinking.\n",
 				gettime() - philo->time_now, philo->name);
-		pthread_mutex_unlock(&philo->data->talk);
 	}
+	pthread_mutex_unlock(&philo->data->talk);
 }
 
 int	died(t_philo_data *philo)
