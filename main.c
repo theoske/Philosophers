@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/20 17:30:44 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/20 19:04:56 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,24 @@ void	one_philo(t_philo_data *philo)
 	pthread_mutex_unlock(&philo->fork);
 }
 
+void	cant_eat_in_time(t_philo_data *philo)
+{
+	long long int	tmp;
+	
+	pthread_mutex_lock(&philo->data->talk);
+	tmp = gettime() - philo->time_now - philo->time_to_die;
+	if (tmp < 0)
+		tmp *= -1000;
+	else
+	tmp *= 1000;
+	usleep(tmp);
+	philo->data->is_dead--;
+	if (philo->data->is_dead == -1)
+		printf("%lld	%d died.\n",
+				gettime() - philo->time_now, philo->name);
+	pthread_mutex_unlock(&philo->data->talk);
+}
+
 void	philosopher(t_philo_data *philo)
 {
 	philo->time_now = gettime();
@@ -66,8 +84,6 @@ void	philosopher(t_philo_data *philo)
 			eating(philo);
 			if (philo->time_eaten != philo->times_each_philo_must_eat)
 			{
-				if (philo->data->initial_time_to_eat * 2 > philo->data->initial_time_to_die)
-						usleep((philo->data->initial_time_to_die - philo->data->initial_time_to_eat) * 1000);
 				if (died(philo) == 0)
 					sleeping(philo);
 				if (died(philo) == 0)
