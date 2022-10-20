@@ -6,11 +6,11 @@
 #    By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/10/15 15:12:01 by tkempf-e          #+#    #+#              #
-#    Updated: 2022/10/20 19:18:21 by tkempf-e         ###   ########.fr        #
+#    Updated: 2022/10/21 00:21:16 by tkempf-e         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-SRCS	=	main.c actions.c utils.c cant_eat_in_time.c
+SRCS	=	main.c actions.c utils.c death_and_free.c
 
 OBJS	=	$(SRCS:.c=.o)
 

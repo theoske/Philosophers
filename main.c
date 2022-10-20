@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/20 23:55:38 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/21 00:36:43 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,10 @@ void	philo_init(t_data *data, t_philo_data *philo, int argc, char **argv)
 	philo->time_to_die = data->initial_time_to_die;
 	philo->time_to_eat = data->initial_time_to_eat * 1000;
 	philo->time_to_sleep = data->initial_time_to_sleep * 1000;
+	if (philo->time_to_eat == 0)
+		philo->time_to_eat = 300;
+	if (philo->time_to_sleep == 0)
+		philo->time_to_sleep = 300;
 	if (argc == 6)
 		philo->times_each_philo_must_eat = ft_atoi(argv[5]);
 	else
@@ -78,12 +82,12 @@ void	philosopher(t_philo_data *philo)
 }
 
 /*
-1 800 200 200 not eat and should die
-5 800 200 200 no die
-5 800 200 200 7 no die stop after 7 eat
-4 410 200 200 no die
-4 310 200 100 one should die
-2 philo to check times -> no delay above 10
+tests :
+./philo 1 800 200 200 		should not eat and should die.
+./philo 5 800 200 200 		no one should die.
+./philo 5 800 200 200 7		no one should die. stops after 7 times eaten.
+./philo 4 410 200 200 		no one should die.
+./philo 4 310 200 100 		one should die.
 */
 int	main(int argc, char *argv[])
 {
@@ -104,7 +108,8 @@ int	main(int argc, char *argv[])
 		philo[i[2]].right_fork = &philo[i[2] - 1].fork;
 	philo[0].right_fork = &philo[data.number_of_philo - 1].fork;
 	while (++i[3] < data.number_of_philo)
-		pthread_create(&philo[i[3]].thread, NULL, (void *)philosopher, &philo[i[3]]);
+		pthread_create(&philo[i[3]].thread, NULL,
+			(void *)philosopher, &philo[i[3]]);
 	while (++i[4] < data.number_of_philo)
 		pthread_join(philo[i[4]].thread, NULL);
 	while (++i[5] < data.number_of_philo)
