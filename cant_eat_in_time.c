@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/20 19:17:27 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/20 19:22:24 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/20 23:45:13 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,4 +28,11 @@ void	cant_eat_in_time(t_philo_data *philo)
 		printf("%lld	%d died.\n",
 			gettime() - philo->time_now, philo->name);
 	pthread_mutex_unlock(&philo->data->talk);
+}
+
+void	ft_mutex_free(t_philo_data *philo)
+{
+	pthread_mutex_destroy(&philo->fork);
+	if (philo->name == 1)
+		pthread_mutex_destroy(&philo->data->talk);
 }

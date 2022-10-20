@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/10 10:02:48 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/20 19:17:52 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/20 23:55:38 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,25 +89,26 @@ int	main(int argc, char *argv[])
 {
 	t_data				data;
 	t_philo_data		philo[250];
-	int					i;
+	int					*i;
 
 	if (arguments_checker(argc, argv, &data) == -1)
 		return (ft_error());
-	i = -1;
-	while (++i < data.number_of_philo)
-		philo_init(&data, &philo[i], argc, argv);
-	i = -1;
-	while (++i < data.number_of_philo)
-		pthread_mutex_init(&philo[i].fork, NULL);
-	i = 0;
-	while (++i < data.number_of_philo)
-		philo[i].right_fork = &philo[i - 1].fork;
+	i = malloc(6 * sizeof(int));
+	memset(i, -1, 6 * sizeof(int));
+	while (++i[0] < data.number_of_philo)
+		philo_init(&data, &philo[i[0]], argc, argv);
+	while (++i[1] < data.number_of_philo)
+		pthread_mutex_init(&philo[i[1]].fork, NULL);
+	i[2] = 0;
+	while (++i[2] < data.number_of_philo)
+		philo[i[2]].right_fork = &philo[i[2] - 1].fork;
 	philo[0].right_fork = &philo[data.number_of_philo - 1].fork;
-	i = -1;
-	while (++i < data.number_of_philo)
-		pthread_create(&philo[i].thread, NULL, (void *)philosopher, &philo[i]);
-	i = -1;
-	while (++i < data.number_of_philo)
-		pthread_join(philo[i].thread, NULL);
+	while (++i[3] < data.number_of_philo)
+		pthread_create(&philo[i[3]].thread, NULL, (void *)philosopher, &philo[i[3]]);
+	while (++i[4] < data.number_of_philo)
+		pthread_join(philo[i[4]].thread, NULL);
+	while (++i[5] < data.number_of_philo)
+		ft_mutex_free(&philo[i[5]]);
+	free(i);
 	return (0);
 }

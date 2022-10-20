@@ -6,7 +6,7 @@
 /*   By: tkempf-e <tkempf-e@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/15 14:56:25 by tkempf-e          #+#    #+#             */
-/*   Updated: 2022/10/20 18:46:14 by tkempf-e         ###   ########.fr       */
+/*   Updated: 2022/10/20 23:39:52 by tkempf-e         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,5 +63,6 @@ void			thinking(t_philo_data *philo);
 void			philosopher(t_philo_data *philo);
 void			one_philo(t_philo_data *philo);
 void			cant_eat_in_time(t_philo_data *philo);
+void			ft_mutex_free(t_philo_data *philo);
 
 #endif
