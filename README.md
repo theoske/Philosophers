@@ -14,9 +14,10 @@ Philosophers need to eat and if they don't eat in time they will die.
 
 How to use :
 - Open the terminal.
-- Use the following commands : - git clone https://github.com/theoske/Philosophers.git philosopher
-                               - cd philosopher/philo
-                               - make
+- Use the following commands :
+git clone https://github.com/theoske/Philosophers.git philosopher
+cd philosopher/philo/
+make
 - Now you can run the philo program with the arguments you want like this :
     ./philo   Number_of_philosophers   Time_to_die   Time_to_eat   Time_to_sleep   [Times_each_philosopher_must_eat]
 - The last argument is optional.
